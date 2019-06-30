@@ -1,0 +1,163 @@
+
+-------- JS
+
+function formatArrayTable(table) {
+    if (table.length == 0) {
+        return ""
+    } else {
+        const [firstRow, ...otherRows] = table
+        return `| ${firstRow.join(" | ")} |\n` + formatArrayTable(otherRows)
+    }
+}
+
+
+-------- How indentation works:
+
+-- a colon wraps all following and indented expressions with parens, similar to
+-- $ operator in Haskell.  Fat arrow does the same to parsing, but also has
+-- syntactic significance
+do (a complicated expression with nesting)
+-- same as
+do: a complicated expression with nesting
+-- same as
+do:
+    a complicated expression with nesting
+
+-- Normally, two lines at the same indent level would be automatically
+-- separated by the contextually appropriate separator (either comma or dot)
+["Foo", "Bar"]
+-- same as
+[
+    "Foo"
+    "Bar"
+]
+
+-- In order to continue a long expression, you must indent one level
+a very long expression that just keeps going
+-- same as
+a very long expression
+    that just
+    keeps going
+
+-------- How function definitions work:
+
+-- Define a function
+
+-- Simple function:
+write String to File =>
+    --- This is interpreted as documentation
+    --- :String: will be written to :File:.  :File: must have an associated
+    --- file descriptor.
+    string:: for each in String do: send Character _Index =>
+        system::syscall::write(
+            system::file:: File descriptor |> option:: unwrap option <>,
+            mem:: String as buffer |> mem:: buffer <> unsafe pointer,
+            string:: String length,
+        )
+write string to file (String, File) => nil -- ...
+write String to file (File) =>
+write string (String) to file (File) =>
+write string (String, File) to file =>
+
+-- Excluding argument names from function name
+map (Transform) onto List => -- is named Map Onto List
+map onto list (Transform, List) =>
+map (Transform) onto (List) list =>
+
+-- 
+
+-- Call a function
+
+-- Call by order:
+let File = system::io:: open file "./foo.txt" until closed
+let String = "foo"
+let Other_String = "bar"
+
+write String to File                -- when the names match
+write string (Other_String) to File -- when the names don't match, or you need to nest an expression
+write String to file (File)         -- you can even do it this way even if the names do match, but it's longer
+write string "baz" to File          -- no parens needed if you pass a literal
+write string to file (String, File) -- c style
+write (String, File) string to file -- the parens can really go anywhere after the first word, as long as the arguments stay in order
+
+-- BAD
+write string to file (String) (File) -- can't do this, there must be a word between each group of parens.
+                                     -- This is a syntax error to avoid ambiguity
+-- If you want to call curried functions, do
+(curried "foo") ("bar")
+
+-- Call by name:
+write string to file (String = Other_String, File = File) -- keyed by the argument names
+write string to file (=String, =File) -- if the names match, prefix with = to pass by name
+write string to file (=File, =String) -- order doesn't matter
+write string (String = Other_String) to file (=File) -- as with call by order, parens can go wherever
+
+-- BAD
+write =String to =File -- this is not a thing
+-- instead, just name your function Write To and call it
+write (=String) to (=File)
+
+-- Call by order and name:
+write String to file (File = File) -- you can combine order and name
+write string to file (String, File = File)
+
+-- Referencing a function:
+handle Event => log message "x: $(Event->x), y: $(Event->y)". nil
+www::dom:: when dom_event "click" happens do: Handle Event
+
+-- Assigning a function to a variable
+-- Functions are just values, this is a functional programming language after all
+-- Capitalize all the words in the function name to reference or assign to it
+Task Is Done = ->Is_Done
+
+
+-------- Aro
+
+use type www:: fetch
+
+used with: Fetch (is fetch) -- this must be imported like so: use module with Fetch
+
+use www:: Parse Response
+use system::io::(Write String To File, Exit_Success)
+
+log message "This runs on startup when this module is imported"
+log message "The module was used with an injected dependency $(
+    function:: function (Fetch) name
+)"
+
+share: run program with Posix_Io _Env _Args =>
+    let Tasks = fetch "https://api.tasks.io/tasks" |> parse response <>
+    let Formatted_Table = format list_table [
+        ["ID", "Done", "Text"]
+        ...map (Tasks) over: row from Task at Index =>
+            [
+                number:: number (Index) as string
+                "[$(if Task is done then "X" else " ")]"
+                Task->Text
+            ]
+    ]
+    write string (Formatted_Table) to file (Posix_Io->Stdout)
+    Exit_Success
+
+Task is done => Task->Is_Done
+
+--- Also defined in list module
+map (Things) (are 't) through (Transform Thing at Index) (is ('t, #) => 'u)
+    (returns ['u..]) =>
+        let map Index Things over Transform =>
+            match Things with:
+                [] then []
+                [Thing, ...Others] then
+                    list:: prepend:
+                        transform Thing at Index
+                    onto:
+                        map index (Index + 1) things (Others) over Transform
+        map index 0 Things over Transform
+
+share: format List_Table (is [["*"..]..]) =>
+    match List_Table with:
+        [] then ""
+        [First_Row, ...Other_Rows] then:
+            use string:: Join List With Seperator
+            "| $(join list (First_Row) with seperator (" | ")) |\n" ++
+                format list_table (Other_Rows)
