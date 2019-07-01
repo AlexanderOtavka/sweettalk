@@ -54,7 +54,7 @@ write String to File =>
 
     system::syscall::write(
         system::file:: File descriptor |> option:: unwrap option <>,
-        mem:: String as buffer |> mem:: buffer <> unsafe pointer,
+        mem:: String as buffer |> mem:: unsafe buffer <> pointer,
         string:: String length,
     )
 write string to file (String, File) => nil -- ...
