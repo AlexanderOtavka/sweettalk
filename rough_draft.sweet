@@ -53,11 +53,11 @@ write String to File =>
     --- file descriptor.
 
     system::syscall::write(
-        system::file:: File descriptor |> option:: unwrap option <>,
+        system::file:: File descriptor?!, -- ?! crashes if maybe is nothing
         mem:: String as buffer |> mem:: unsafe buffer <> pointer,
         string:: String length,
     )
-write string to file (String, File) => nil -- ...
+write string to file (String, File) => nothing
 write String to file (File) =>
 write string (String) to file (File) =>
 write string (String, File) to file =>
@@ -67,6 +67,37 @@ map (Transform) onto List => -- is named Map Onto List
 map onto list (Transform, List) =>
 map (Transform) onto (List) list =>
 
+-- Optional parameters
+say (Message? or "\n") =>
+
+-- `?!` crashes if the maybe is nothing.
+-- `?` returns early with the maybe if it is bad
+
+-- Overloads
+-- Not really overloads because it generates multiple functions with different
+-- names, but with the same body.  Come up with a better name
+do a thing (and another one (a third with the other one)?)?
+    (or a fourth independently with Parameter)? (is_ ok)? =>
+        -- this function simply prints out the way it was called
+        (
+            if And Another One -- We can see which branch we took
+                then: "and another one" ++
+                    if A Third With The Other One
+                        -- This one is nested, so it can only be given if `And
+                        -- Another One` is given first
+                        then "a third with the other one"
+                        else ""
+                else ""
+        ) ++ (
+            if Or A Fourth Independently With Parameter
+                then "or a fourth independently with parameter ($(Parameter?!))"
+                else ""
+        ) ++ (
+            if Is_ Ok -- use underscore to avoid confusion with keyword
+                then "is_ ok"
+                else ""
+        )
+
 -- Annotating parameters with types
 write String (is "*") to File (is system::io::file) =>
 map onto list (Transform (is *=>*), List (is [*])) =>
@@ -74,7 +105,7 @@ print Things (are *) =>
 print Things (is [*]) =>
 print things (Things (is [*])) =>
 
--- Call a function
+-------- How function calls work:
 
 -- Call by order:
 let File = system::io:: open file "./foo.txt" until closed
@@ -110,7 +141,7 @@ write String to file (File = File) -- you can combine order and name
 write string to file (String, File = File)
 
 -- Referencing a function:
-handle Event => log message "x: $(Event->x), y: $(Event->y)". nil
+handle Event (returns nothing) => log message "x: $(Event->x), y: $(Event->y)"
 www::dom:: when dom_event "click" happens do: Handle Event
 
 -- Assigning a function to a variable
@@ -119,7 +150,7 @@ www::dom:: when dom_event "click" happens do: Handle Event
 Task Is Done = ->Is_Done
 
 
--------- Aro
+-------- Example code
 
 use type www:: fetch
 
@@ -172,7 +203,7 @@ share: format List_Table (is [["*"..]..]) =>
             "| $(join list (First_Row) with separator (" | ")) |\n" ++
                 format list_table (Other_Rows)
 
--------- JS
+-- JS equivalent
 -- function formatListTable(table) {
 --     if (table.length == 0) {
 --         return ""
