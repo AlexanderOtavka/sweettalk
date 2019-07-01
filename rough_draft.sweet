@@ -1,15 +1,17 @@
+-- sweettalk Programming Language Spec Draft
+-- This is a very rough and informal working spec, just to get my ideas written
+-- down.
 
--------- JS
+-- sweettalk is a dynamically typed functional language similar to python and
+-- JavaScript. It is meant to interop well with other languages, not requiring
+-- user generated bindings. The function call syntax is inspired by smalltalk,
+-- hence the name. It is meant to be verbose and read very close to english.
+-- Built-in support for reactivity is a maybe.
 
-function formatArrayTable(table) {
-    if (table.length == 0) {
-        return ""
-    } else {
-        const [firstRow, ...otherRows] = table
-        return `| ${firstRow.join(" | ")} |\n` + formatArrayTable(otherRows)
-    }
-}
-
+-- For now, it will be compile to JS, but eventually, it should compile to an IR
+-- that can target arbitrary environments. The standard library will be designed
+-- to be very portable, and to favor dependency injection of platform specific
+-- things.
 
 -------- How indentation works:
 
@@ -45,15 +47,16 @@ a very long expression
 
 -- Simple function:
 write String to File =>
-    --- This is interpreted as documentation
+    --- This is interpreted as function documentation
+    ---
     --- :String: will be written to :File:.  :File: must have an associated
     --- file descriptor.
-    string:: for each in String do: send Character _Index =>
-        system::syscall::write(
-            system::file:: File descriptor |> option:: unwrap option <>,
-            mem:: String as buffer |> mem:: buffer <> unsafe pointer,
-            string:: String length,
-        )
+
+    system::syscall::write(
+        system::file:: File descriptor |> option:: unwrap option <>,
+        mem:: String as buffer |> mem:: buffer <> unsafe pointer,
+        string:: String length,
+    )
 write string to file (String, File) => nil -- ...
 write String to file (File) =>
 write string (String) to file (File) =>
@@ -64,7 +67,12 @@ map (Transform) onto List => -- is named Map Onto List
 map onto list (Transform, List) =>
 map (Transform) onto (List) list =>
 
--- 
+-- Annotating parameters with types
+write String (is "*") to File (is system::io::file) =>
+map onto list (Transform (is *=>*), List (is [*])) =>
+print Things (are *) =>
+print Things (is [*]) =>
+print things (Things (is [*])) =>
 
 -- Call a function
 
@@ -129,7 +137,7 @@ share: run program with Posix_Io _Env _Args =>
     let Tasks = fetch "https://api.tasks.io/tasks" |> parse response <>
     let Formatted_Table = format list_table [
         ["ID", "Done", "Text"]
-        ...map (Tasks) over: row from Task at Index =>
+        ...map list (Tasks) through: row from Task at Index =>
             [
                 number:: number (Index) as string
                 "[$(if Task is done then "X" else " ")]"
@@ -142,22 +150,34 @@ share: run program with Posix_Io _Env _Args =>
 Task is done => Task->Is_Done
 
 --- Also defined in list module
-map (Things) (are 't) through (Transform Thing at Index) (is ('t, #) => 'u)
+map List (as Things) (are 't)
+    through (Transform (as Transform Thing at Index) (is ('t, #) => 'u))
     (returns ['u..]) =>
-        let map Index Things over Transform =>
+        let map Index Things through Transform =>
             match Things with:
                 [] then []
                 [Thing, ...Others] then
-                    list:: prepend:
-                        transform Thing at Index
-                    onto:
-                        map index (Index + 1) things (Others) over Transform
-        map index 0 Things over Transform
+                    list:: prepend
+                        element:
+                            transform Thing at Index
+                        onto list: map index (Index + 1) things (Others)
+                                   through Transform
+        map index 0 Things through Transform
 
 share: format List_Table (is [["*"..]..]) =>
     match List_Table with:
         [] then ""
         [First_Row, ...Other_Rows] then:
-            use string:: Join List With Seperator
-            "| $(join list (First_Row) with seperator (" | ")) |\n" ++
+            use string:: Join List With Separator
+            "| $(join list (First_Row) with separator (" | ")) |\n" ++
                 format list_table (Other_Rows)
+
+-------- JS
+-- function formatListTable(table) {
+--     if (table.length == 0) {
+--         return ""
+--     } else {
+--         const [firstRow, ...otherRows] = table
+--         return `| ${firstRow.join(" | ")} |\n` + formatArrayTable(otherRows)
+--     }
+-- }
