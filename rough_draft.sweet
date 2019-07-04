@@ -149,6 +149,36 @@ www::dom:: when dom_event "click" happens do: Handle Event
 -- Capitalize all the words in the function name to reference or assign to it
 Task Is Done = ->Is_Done
 
+-------- Type constructors
+
+type maybe = one of:
+    something *
+    nothing
+
+type result = one of:
+    ok *
+    error *
+
+let My_Something = maybe something 5
+let My_Something = maybe something (3 + 2)
+let My_Nothing = maybe nothing
+
+let My_Result = result ok 5
+
+crash! unless My_Result is result
+crash! unless My_Something is maybe
+
+if My_Something is maybe something (Thing)
+    then: log message "Something: $Thing"
+    elsif My_Something == 2
+    then: log message "Technically possible, because we aren't statically typed"
+    else: log message "Nothing"
+
+if My_Result is result ok (Thing)
+    then: log message "Ok: $Thing"
+    else:
+        let result error (Error) = My_Result
+        log message "Error: $Error"
 
 -------- Example code
 
