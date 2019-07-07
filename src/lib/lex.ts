@@ -1,92 +1,105 @@
-const symbolLexer = (symbol: string, typeName: string) => (subFile: string) => {
-  if (subFile.substring(0, symbol.length) === symbol) {
-    return { consumed: symbol.length, newToken: { type: typeName } };
+import { ok, error, forOkResult } from "./result"
+
+export const symbolLexer = (symbol: string, typeName: string) => (
+  subFile: string,
+) => {
+  if (
+    subFile.substring(0, symbol.length) === symbol &&
+    (subFile.length === symbol.length || subFile[symbol.length].match(/[\s\w]/))
+  ) {
+    return { consumed: symbol.length, newToken: { type: typeName } }
   } else {
-    return { consumed: 0 };
+    return { consumed: 0 }
   }
-};
+}
 
-const keywordLexer = (keyword: string) => symbolLexer(keyword, keyword);
-
-const lexIndent = (subFile: string) => {
-  const match = subFile.match(/^\n[ \t]+/m);
-  if (match) {
-    return {
-      consumed: match[0].length,
-      newToken: { type: 'indent', value: match[0].substring(1) }
-    };
+export const keywordLexer = (keyword: string) => (subFile: string) => {
+  const match = subFile.match(/^\w+/)
+  if (match && match[0] === keyword) {
+    return { consumed: keyword.length, newToken: { type: keyword } }
   } else {
-    return { consumed: 0 };
+    return { consumed: 0 }
   }
-};
+}
 
-const lexNumber = (subFile: string) => {
-  const match = subFile.match(/^\d[\d,]*\d?(\.\d[\d,]*\d)?/);
-  if (match) {
-    return {
-      consumed: match[0].length,
-      newToken: { type: 'number', value: +match[0] }
-    };
-  } else {
-    return { consumed: 0 };
-  }
-};
-
-const lexWord = (subFile: string) => {
-  const match = subFile.match(/^/);
-  if (match) {
-    return {
-      consumed: match[0].length,
-      newToken: { type: 'number', value: +match[0] }
-    };
-  } else {
-    return { consumed: 0 };
-  }
-};
-
-const lexers = [
-  lexIndent,
-  keywordLexer('let'),
-  keywordLexer('is'),
-  keywordLexer('are'),
-  keywordLexer('returns'),
-  keywordLexer('new'),
-  keywordLexer('if'),
-  keywordLexer('then'),
-  keywordLexer('else'),
-  symbolLexer('(', 'lParen'),
-  symbolLexer(')', 'rParen'),
-  symbolLexer('[', 'lBracket'),
-  symbolLexer(']', 'rBracket'),
-  symbolLexer('{', 'lBrace'),
-  symbolLexer('}', 'rBrace'),
-  symbolLexer(':', 'colon'),
-  symbolLexer(',', 'comma'),
-  symbolLexer('.', 'dot'),
-  symbolLexer('=>', 'functionAssign'),
-  symbolLexer('=', 'assign'),
-  symbolLexer('->', 'property'),
-  symbolLexer('|>', 'rPipeline'),
-  symbolLexer('<>', 'hole'),
-  symbolLexer('#', 'hash'),
-  symbolLexer('?', 'question'),
-  symbolLexer('?!', 'questionBang')
-];
-
-export const lexFile = (file: string) => {
-  const lexSubFile = (subFile: string, tokensSoFar: ReadonlyArray<any>) => {
-    for (const lex of lexers) {
-      const { consumed, newToken } = lex(subFile);
-      if (consumed !== 0) {
-        return lexSubFile(subFile.substring(consumed), [
-          ...tokensSoFar,
-          newToken
-        ]);
-      }
+export const lexWithLexers = (subFile: string, lexers: readonly any[]) => {
+  for (const lex of lexers) {
+    const result = lex(subFile)
+    if (result.consumed > 0) {
+      return result
     }
+  }
 
-    throw Error(`Unknown symbol: ${subFile[0]}`);
-  };
+  return { consumed: 0 }
+}
 
-  return lexSubFile(file, []);
-};
+export const lexIndent = (subFile: string) => {
+  const matchFromSpacesOrTabs = (str: string) => {
+    if (str[0] === " ") {
+      const { consumed, value } = matchFromSpacesOrTabs(str.substring(1))
+      return { consumed: consumed + 1, value: " " + value }
+    } else if (str[0] === "\t") {
+      const { consumed, value } = matchFromSpacesOrTabs(str.substring(1))
+      return { consumed: consumed + 1, value: "\t" + value }
+    } else {
+      return { consumed: 0, value: "" }
+    }
+  }
+
+  const matchFromLf = (str: string) => {
+    if (str[0] === "\n") {
+      const { consumed, value } = matchFromSpacesOrTabs(str.substring(1))
+      return { consumed: consumed + 1, value }
+    } else {
+      return { consumed: 0, value: "" }
+    }
+  }
+
+  const matchFromCrMaybe = (str: string) => {
+    if (str[0] === "\r") {
+      const { consumed, value } = matchFromLf(str.substring(1))
+      if (consumed > 0) {
+        return { consumed: consumed + 1, value }
+      } else {
+        return { consumed: 0, value: "" }
+      }
+    } else {
+      return matchFromLf(str)
+    }
+  }
+
+  const { consumed, value } = matchFromCrMaybe(subFile)
+  if (consumed > 0) {
+    return { consumed, newToken: { type: "indent", value } }
+  } else {
+    return { consumed: 0 }
+  }
+}
+
+export const lexFileWithLexers = (file: string, lexers: readonly any[]) => {
+  if (file === "") {
+    return ok([])
+  }
+
+  const { consumed, newToken } = lexWithLexers(file, [lexIndent, ...lexers])
+  if (consumed > 0) {
+    return forOkResult(
+      lexFileWithLexers(file.substring(consumed), lexers),
+      tokens =>
+        tokens.length > 0 &&
+        tokens[0].type === "indent" &&
+        newToken.type === "indent"
+          ? tokens
+          : [newToken, ...tokens],
+    )
+  } else if (file.match(/^[ \t]/)) {
+    return lexFileWithLexers(file.substring(1), lexers)
+  } else {
+    const nonWhitespaceMatch = file.match(/^\S+/)
+    if (nonWhitespaceMatch) {
+      return error(`Unknown symbol: ${nonWhitespaceMatch[0]}`)
+    } else {
+      return error("Unknown whitespace")
+    }
+  }
+}
