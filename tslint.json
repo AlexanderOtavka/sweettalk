@@ -2,6 +2,7 @@
   "extends": ["tslint:latest", "tslint-config-prettier", "tslint-immutable"],
   "rules": {
     "ordered-imports": false,
+    "object-literal-sort-keys": false,
     "no-shadowed-variable": false,
     "interface-name": [true, "never-prefix"],
     // TODO: allow devDependencies only in **/*.spec.ts files:

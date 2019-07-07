@@ -55,6 +55,7 @@
     "sha.js": "^2.4.11"
   },
   "devDependencies": {
+    "@types/sinon": "^7.0.13",
     "ava": "1.0.0-beta.7",
     "codecov": "^3.1.0",
     "cz-conventional-changelog": "^2.1.0",
@@ -63,6 +64,7 @@
     "nyc": "^13.1.0",
     "opn-cli": "^4.0.0",
     "prettier": "^1.15.2",
+    "sinon": "^7.3.2",
     "standard-version": "^4.4.0",
     "trash-cli": "^1.4.0",
     "tslint": "^5.11.0",

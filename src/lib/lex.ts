@@ -86,11 +86,13 @@ export const lexFileWithLexers = (file: string, lexers: readonly any[]) => {
     return forOkResult(
       lexFileWithLexers(file.substring(consumed), lexers),
       tokens =>
-        tokens.length > 0 &&
-        tokens[0].type === "indent" &&
-        newToken.type === "indent"
-          ? tokens
-          : [newToken, ...tokens],
+        ok(
+          tokens.length > 0 &&
+            tokens[0].type === "indent" &&
+            newToken.type === "indent"
+            ? tokens
+            : [newToken, ...tokens],
+        ),
     )
   } else if (file.match(/^[ \t]/)) {
     return lexFileWithLexers(file.substring(1), lexers)
