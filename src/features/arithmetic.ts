@@ -3,8 +3,8 @@ import { lexWithLexers, symbolLexer } from "../lib/lex"
 const lexers = [
   symbolLexer("+", "plus"),
   symbolLexer("-", "minus"),
-  symbolLexer("*", "plus"),
-  symbolLexer("+", "plus"),
+  symbolLexer("*", "star"),
+  symbolLexer("/", "divide"),
   symbolLexer("%", "modulo"),
 ]
 
