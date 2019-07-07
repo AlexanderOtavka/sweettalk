@@ -1,6 +1,6 @@
 export type Result<V, E> =
-  | { type: "result ok"; value: V }
-  | { type: "result error"; message: E }
+  | { readonly type: "result ok"; readonly value: V }
+  | { readonly type: "result error"; readonly message: E }
 
 export const ok = <T>(value: T) => ({ type: "result ok", value })
 export const error = <T>(message: T) => ({ type: "result error", message })
