@@ -1,3 +1,5 @@
+// lex = translate source code into tokens
+
 import { ok, error, forOkResult } from "./result"
 
 export const symbolLexer = (symbol: string, typeName: string) => (
