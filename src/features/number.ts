@@ -14,16 +14,16 @@ export const lex = (subFile: string) => {
   }
 }
 
-export const numberAst = (value: number) => ({
-  type: "number ast",
+export const numberUst = (value: number) => ({
+  type: "number ust",
   value,
 })
 
-export const parse = (tokens: readonly any[]) =>
+export const parseTokens = (tokens: readonly any[]) =>
   match(tokens, [
     [
       [numberToken(ANY)],
-      ([{ value }]) => ({ consumed: 1, ast: numberAst(value) }),
+      ([{ value }]) => ({ consumed: 1, ust: numberUst(value) }),
     ],
     [ANY, _ => ({ consumed: 0 })],
   ])
