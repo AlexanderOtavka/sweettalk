@@ -1,6 +1,6 @@
-import match, { ANY } from "../lib/match"
+import passThroughTypeMatches from "../lib/passThroughTypeMatches"
 
-export const numberToken = (value: number) => ({ type: "number token", value })
+export const numberToken = (value: number) => ({ type: "number", value })
 
 export const lex = (subFile: string) => {
   const match = subFile.match(/^\d([\d,]*\d)?(\.\d([\d,]*\d)?)?/)
@@ -14,16 +14,7 @@ export const lex = (subFile: string) => {
   }
 }
 
-export const numberUst = (value: number) => ({
-  type: "number ust",
-  value,
-})
+export const numberUst = numberToken
 
 export const parseTokens = (tokens: readonly any[]) =>
-  match(tokens, [
-    [
-      [numberToken(ANY)],
-      ([{ value }]) => ({ consumed: 1, ust: numberUst(value) }),
-    ],
-    [ANY, _ => ({ consumed: 0 })],
-  ])
+  passThroughTypeMatches(tokens, ["number"])

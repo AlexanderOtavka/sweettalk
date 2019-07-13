@@ -1,22 +1,26 @@
-import test from "ava"
-import { lex } from "./arithmetic"
+import test, { ExecutionContext } from "ava"
+import { lex, parseTokens } from "./arithmetic"
 
-test("can lex a +", t => {
-  t.deepEqual(lex("+ foo"), { consumed: 1, newToken: { type: "plus" } })
-})
+const canLex = (t: ExecutionContext, symbol: string, type: string) => {
+  t.deepEqual(lex(`${symbol} foo`), { consumed: 1, newToken: { type } })
+}
+// tslint:disable-next-line:no-expression-statement
+canLex.title = (_: any, symbol: string) => `can lex a ${symbol}`
 
-test("can lex a -", t => {
-  t.deepEqual(lex("- foo"), { consumed: 1, newToken: { type: "minus" } })
-})
+test(canLex, "+", "plus")
+test(canLex, "-", "minus")
+test(canLex, "*", "star")
+test(canLex, "/", "divide")
+test(canLex, "%", "modulo")
 
-test("can lex a *", t => {
-  t.deepEqual(lex("* foo"), { consumed: 1, newToken: { type: "star" } })
-})
+const canParseToken = (t: ExecutionContext, type: string) => {
+  t.deepEqual(parseTokens([{ type }]), { consumed: 1, ust: { type } })
+}
+// tslint:disable-next-line:no-expression-statement
+canParseToken.title = (_: any, type: string) => `can parse ${type} token`
 
-test("can lex a /", t => {
-  t.deepEqual(lex("/ foo"), { consumed: 1, newToken: { type: "divide" } })
-})
-
-test("can lex a %", t => {
-  t.deepEqual(lex("% foo"), { consumed: 1, newToken: { type: "modulo" } })
-})
+test(canParseToken, "plus")
+test(canParseToken, "minus")
+test(canParseToken, "star")
+test(canParseToken, "divide")
+test(canParseToken, "modulo")
