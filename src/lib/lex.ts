@@ -35,66 +35,16 @@ export const lexWithLexers = (subFile: string, lexers: readonly any[]) => {
   return { consumed: 0 }
 }
 
-export const lexIndent = (subFile: string) => {
-  const matchFromSpacesOrTabs = (str: string) => {
-    if (str[0] === " ") {
-      const { consumed, value } = matchFromSpacesOrTabs(str.substring(1))
-      return { consumed: consumed + 1, value: " " + value }
-    } else if (str[0] === "\t") {
-      const { consumed, value } = matchFromSpacesOrTabs(str.substring(1))
-      return { consumed: consumed + 1, value: "\t" + value }
-    } else {
-      return { consumed: 0, value: "" }
-    }
-  }
-
-  const matchFromLf = (str: string) => {
-    if (str[0] === "\n") {
-      const { consumed, value } = matchFromSpacesOrTabs(str.substring(1))
-      return { consumed: consumed + 1, value }
-    } else {
-      return { consumed: 0, value: "" }
-    }
-  }
-
-  const matchFromCrMaybe = (str: string) => {
-    if (str[0] === "\r") {
-      const { consumed, value } = matchFromLf(str.substring(1))
-      if (consumed > 0) {
-        return { consumed: consumed + 1, value }
-      } else {
-        return { consumed: 0, value: "" }
-      }
-    } else {
-      return matchFromLf(str)
-    }
-  }
-
-  const { consumed, value } = matchFromCrMaybe(subFile)
-  if (consumed > 0) {
-    return { consumed, newToken: { type: "indent", value } }
-  } else {
-    return { consumed: 0 }
-  }
-}
-
 export const lexFileWithLexers = (file: string, lexers: readonly any[]) => {
   if (file === "") {
     return ok([])
   }
 
-  const { consumed, newToken } = lexWithLexers(file, [lexIndent, ...lexers])
+  const { consumed, newToken } = lexWithLexers(file, lexers)
   if (consumed > 0) {
     return forOkResult(
       lexFileWithLexers(file.substring(consumed), lexers),
-      tokens =>
-        ok(
-          tokens.length > 0 &&
-            tokens[0].type === "indent" &&
-            newToken.type === "indent"
-            ? tokens
-            : [newToken, ...tokens],
-        ),
+      tokens => ok([newToken, ...tokens]),
     )
   } else if (file.match(/^[ \t]/)) {
     return lexFileWithLexers(file.substring(1), lexers)
