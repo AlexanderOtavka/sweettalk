@@ -43,5 +43,6 @@ export const lex = (subFile: string) => {
   }
 }
 
+// TODO: this should add an indentLevel to all tokens
 export const preParse = (tokens: readonly any[]) =>
   tokens.filter(token => token.type !== "indent")
