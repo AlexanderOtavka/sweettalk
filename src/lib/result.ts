@@ -21,3 +21,11 @@ export const forOkResult = <V = any, E = any, R = any>(
     return result
   }
 }
+
+export const assertOk = <V = any>(result: Result<V, any>) => {
+  if (result.type === "result ok") {
+    return result.value
+  } else {
+    throw Error(result.message.toString())
+  }
+}

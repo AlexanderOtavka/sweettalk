@@ -11,6 +11,7 @@ const loadFeatures = (
   },
 ) => {
   const features = readdirSync(path.resolve(featuresDir))
+    .filter(fileName => path.extname(fileName) === ".js")
     .map(fileName => path.basename(fileName, path.extname(fileName)))
     .filter(baseName => !baseName.match(/\.spec$/))
     .map(baseName => path.resolve(featuresDir, baseName))

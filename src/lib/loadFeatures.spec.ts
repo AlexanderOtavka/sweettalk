@@ -36,3 +36,16 @@ test("loadFeatures ignores .spec files", t => {
     },
   )
 })
+
+test("loadFeatures ignores .d.ts files", t => {
+  t.deepEqual(
+    loadFeatures("/features", {
+      readdirSync: () => ["bar.js", "bar.d.ts"],
+      require: requireFeature,
+    }),
+    {
+      a: [3],
+      b: [4],
+    },
+  )
+})

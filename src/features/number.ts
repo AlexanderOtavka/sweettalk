@@ -1,4 +1,6 @@
 import passThroughTypeMatches from "../lib/passThroughTypeMatches"
+import match, { ANY } from "../lib/match"
+import { something, nothing } from "../lib/maybe"
 
 export const numberToken = (value: number) => ({ type: "number", value })
 
@@ -14,7 +16,13 @@ export const lex = (subFile: string) => {
   }
 }
 
-export const numberUst = numberToken
+export const numberAst = numberToken
 
-export const parseTokens = (tokens: readonly any[]) =>
+export const parseValue = (tokens: readonly any[]) =>
   passThroughTypeMatches(tokens, ["number"])
+
+export const compileToJs = (ast: any, _compile: (ast: any) => any) =>
+  match(ast, [
+    [numberAst(ANY), ({ value }) => something({ type: "Literal", value })],
+    [ANY, _ => nothing],
+  ])

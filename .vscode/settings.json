@@ -1,5 +1,9 @@
 {
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "cSpell.words": [
+    "USTs",
+    "astring"
+  ]
   // "typescript.implementationsCodeLens.enabled": true
   // "typescript.referencesCodeLens.enabled": true
 }

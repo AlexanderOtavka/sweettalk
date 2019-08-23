@@ -7,7 +7,7 @@ const passThroughTypeMatches = (
   match(tokens, [
     ...types.map((type): any => [
       [{ type }, ...MANY(ANY)],
-      ([ust]) => ({ consumed: 1, ust }),
+      ([ast]) => ({ consumed: 1, ast }),
     ]),
     [ANY, _ => ({ consumed: 0 })],
   ])

@@ -1,5 +1,5 @@
 import test from "ava"
-import { lex, numberToken, parseTokens, numberUst } from "./number"
+import { lex, numberToken, parseValue, numberAst } from "./number"
 
 test("can lex an integer", t => {
   t.deepEqual(lex("3"), {
@@ -99,13 +99,13 @@ test("lex ignores ., in the middle", t => {
 })
 
 test("parses a number token", t => {
-  t.deepEqual(parseTokens([numberToken(4)]), { consumed: 1, ust: numberUst(4) })
+  t.deepEqual(parseValue([numberToken(4)]), { consumed: 1, ast: numberAst(4) })
 })
 
 test("doesn't parse empty token list", t => {
-  t.deepEqual(parseTokens([]), { consumed: 0 })
+  t.deepEqual(parseValue([]), { consumed: 0 })
 })
 
 test("doesn't parse non number tokens", t => {
-  t.deepEqual(parseTokens([{ type: "foo token" }]), { consumed: 0 })
+  t.deepEqual(parseValue([{ type: "foo token" }]), { consumed: 0 })
 })

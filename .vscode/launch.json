@@ -1,6 +1,7 @@
 {
   "version": "0.2.0",
-  "configurations": [{
+  "configurations": [
+    {
       "type": "node",
       "request": "launch",
       "name": "Debug Project",
@@ -35,5 +36,6 @@
       // "preLaunchTask": "npm: build",
       // "smartStep": true,
       "runtimeArgs": ["--nolazy"]
-    }]
+    }
+  ]
 }

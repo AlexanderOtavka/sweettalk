@@ -4,21 +4,21 @@ import passThroughTypeMatches from "./passThroughTypeMatches"
 test("consumes matches without changing them", t => {
   t.deepEqual(passThroughTypeMatches([{ type: "foo" }], ["foo", "bar"]), {
     consumed: 1,
-    ust: { type: "foo" },
+    ast: { type: "foo" },
   })
 })
 
 test("consumes matches from anywhere in the list of types", t => {
   t.deepEqual(passThroughTypeMatches([{ type: "foo" }], ["bar", "foo"]), {
     consumed: 1,
-    ust: { type: "foo" },
+    ast: { type: "foo" },
   })
 })
 
 test("ignores the rest of the tokens", t => {
   t.deepEqual(
     passThroughTypeMatches([{ type: "foo" }, { type: "bar" }], ["foo"]),
-    { consumed: 1, ust: { type: "foo" } },
+    { consumed: 1, ast: { type: "foo" } },
   )
 })
 

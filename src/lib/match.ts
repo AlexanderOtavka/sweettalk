@@ -55,9 +55,9 @@ export const isAMatch = (thing: any, pattern: any) => {
   }
 }
 
-const match = <T>(
-  thing: T,
-  matchers: ReadonlyArray<[any, (thing: T) => any]>,
+const match = (
+  thing: any,
+  matchers: ReadonlyArray<[any, (thing: any) => any]>,
 ) => {
   for (const [pattern, consequent] of matchers) {
     if (isAMatch(thing, pattern)) {
