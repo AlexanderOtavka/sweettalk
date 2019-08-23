@@ -1,5 +1,4 @@
 import { ok, error } from "./result"
-import mapObject from "./mapObject"
 
 /**
  * Parse a list of tokens into an AST.
@@ -18,6 +17,17 @@ const parseWithParsers = (
 
   return { consumed: 0 }
 }
+
+export const injectParserDependency = (
+  parserGroups: any,
+  parserName: string,
+  dependency: any,
+) => ({
+  ...parserGroups,
+  [parserName]: parserGroups[parserName].map((parse: any) => (...args: any[]) =>
+    parse(...args, dependency),
+  ),
+})
 
 export const parseProgram = (
   tokens: readonly any[],
