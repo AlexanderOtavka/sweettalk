@@ -9,7 +9,7 @@ const passThroughTypeMatches = (
       [{ type }, ...MANY(ANY)],
       ([ast]) => ({ consumed: 1, ast }),
     ]),
-    [ANY, _ => ({ consumed: 0 })],
+    [ANY, _ => ({ consumed: 0, errors: [] })],
   ])
 
 export default passThroughTypeMatches

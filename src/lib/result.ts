@@ -1,15 +1,25 @@
-export type Result<V, E> =
-  | { readonly type: "result ok"; readonly value: V }
-  | { readonly type: "result error"; readonly message: E }
+export interface Ok<V> {
+  readonly type: "result ok"
+  readonly value: V
+}
+export interface Error<E> {
+  readonly type: "result error"
+  readonly message: E
+}
 
-export const ok = <T>(value: T): Result<T, never> => ({
+export type Result<V, E> = Ok<V> | Error<E>
+
+export const ok = <T>(value: T): Ok<T> => ({
   type: "result ok",
   value,
 })
-export const error = <T>(message: T): Result<never, T> => ({
+export const error = <T>(message: T): Error<T> => ({
   type: "result error",
   message,
 })
+
+export const isOk = <V, E>(result: Result<V, E>): result is Ok<V> =>
+  result.type === "result ok"
 
 export const forOkResult = <V = any, E = any, R = any>(
   result: Result<V, E>,

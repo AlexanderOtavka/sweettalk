@@ -9,11 +9,11 @@ export interface Nothing {
 }
 export type Maybe<V> = Something<V> | Nothing
 
-export const something = <T>(value: T): Maybe<T> => ({
+export const something = <T>(value: T): Something<T> => ({
   type: "maybe something",
   value,
 })
-export const nothing: Maybe<never> = {
+export const nothing: Nothing = {
   type: "maybe nothing",
 }
 

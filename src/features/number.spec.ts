@@ -103,9 +103,9 @@ test("parses a number token", t => {
 })
 
 test("doesn't parse empty token list", t => {
-  t.deepEqual(parseValue([]), { consumed: 0 })
+  t.deepEqual(parseValue([]), { consumed: 0, errors: [] })
 })
 
 test("doesn't parse non number tokens", t => {
-  t.deepEqual(parseValue([{ type: "foo token" }]), { consumed: 0 })
+  t.deepEqual(parseValue([{ type: "foo token" }]), { consumed: 0, errors: [] })
 })

@@ -1,9 +1,14 @@
 import test from "ava"
 import { parseOperation } from "./binaryInfixExpression"
 import { something, nothing } from "../lib/maybe"
+import { locatedError } from "../lib/error"
+import { rangeLocation } from "../lib/location"
 
 const groupParsers = {
-  parseValue: ([token]) => ({ consumed: 1, ast: token }),
+  parseValue: ([token]) =>
+    token && !isNaN(+token.type)
+      ? { consumed: 1, ast: token }
+      : { consumed: 0, errors: [] },
 }
 const precedenceMatcherGroups = [
   [
@@ -108,6 +113,25 @@ test("can parse 1 + 2 * 3", t => {
           rightHandSide: { type: "3" },
         },
       },
+    },
+  )
+})
+
+test("errors on end of input", t => {
+  t.deepEqual(
+    parseOperation(
+      [{ type: "1" }, { type: "+", location: rangeLocation(2, 3) }],
+      groupParsers,
+      precedenceMatcherGroups,
+    ),
+    {
+      consumed: 0,
+      errors: [
+        locatedError(
+          "Expected an expression after the 'add', but hit the end of the file instead!",
+          rangeLocation(2, 3),
+        ),
+      ],
     },
   )
 })

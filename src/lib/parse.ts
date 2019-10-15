@@ -8,14 +8,17 @@ const parseWithParsers = (
   parsers: readonly any[],
   groupParsers: any,
 ) => {
+  const errors = []
   for (const parse of parsers) {
     const result = parse(tokens, groupParsers)
     if (result.consumed > 0) {
       return result
+    } else {
+      errors.push(...result.errors)
     }
   }
 
-  return { consumed: 0 }
+  return { consumed: 0, errors }
 }
 
 export const injectParserDependency = (
@@ -58,9 +61,9 @@ export const parseProgram = (
   if (tokens.length === 0) {
     return error("Cannot parse empty token list")
   } else {
-    const { consumed, ast } = groupParsers[precedence[0]](tokens)
+    const { consumed, ast, errors } = groupParsers[precedence[0]](tokens)
     if (consumed === 0) {
-      return error("No parser matched")
+      return error(errors)
     } else {
       if (consumed < tokens.length) {
         return error("Parser didn't consume everything")

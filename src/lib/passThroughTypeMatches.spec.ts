@@ -25,13 +25,13 @@ test("ignores the rest of the tokens", t => {
 test("doesn't consume non-matching tokens", t => {
   t.deepEqual(
     passThroughTypeMatches([{ type: "foo" }, { type: "bar" }], ["zing"]),
-    { consumed: 0 },
+    { consumed: 0, errors: [] },
   )
 })
 
 test("only consumes from the head of the list", t => {
   t.deepEqual(
     passThroughTypeMatches([{ type: "foo" }, { type: "bar" }], ["bar"]),
-    { consumed: 0 },
+    { consumed: 0, errors: [] },
   )
 })

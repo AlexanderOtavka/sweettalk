@@ -6,6 +6,8 @@ import {
   lexFileWithLexers,
 } from "./lex"
 import { ok, error } from "./result"
+import { locatedError } from "./error"
+import { singleLocation, rangeLocation } from "./location"
 
 const ltLexer = symbolLexer("<", "lessThan")
 
@@ -107,11 +109,11 @@ test("lexFileWithLexers lexes a file when the tokens are known", t => {
       ltLexer,
     ]),
     ok([
-      { type: "foo" },
-      { type: "food" },
-      { type: "lessThan" },
-      { type: "if" },
-      { type: "foo" },
+      { type: "foo", location: rangeLocation(0, 3) },
+      { type: "food", location: rangeLocation(4, 8) },
+      { type: "lessThan", location: rangeLocation(9, 10) },
+      { type: "if", location: rangeLocation(11, 13) },
+      { type: "foo", location: rangeLocation(14, 17) },
     ]),
   )
 })
@@ -119,21 +121,21 @@ test("lexFileWithLexers lexes a file when the tokens are known", t => {
 test("lexFileWithLexers freaks out when it doesn't know a symbol", t => {
   t.deepEqual(
     lexFileWithLexers("foo food < if foo", [foodLexer, fooLexer, ltLexer]),
-    error("Unknown symbol: if"),
+    error(locatedError("Unknown symbol: if", rangeLocation(11, 13))),
   )
 })
 
 test("lexFileWithLexers freaks out when it hits unexpected whitespace", t => {
   t.deepEqual(
     lexFileWithLexers("foo food \f foo", [foodLexer, fooLexer]),
-    error("Unknown whitespace"),
+    error(locatedError("Unknown whitespace", singleLocation(9))),
   )
   t.deepEqual(
     lexFileWithLexers("foo food \r foo", [foodLexer, fooLexer]),
-    error("Unknown whitespace"),
+    error(locatedError("Unknown whitespace", singleLocation(9))),
   )
   t.deepEqual(
     lexFileWithLexers("foo food \r\r\n foo", [foodLexer, fooLexer]),
-    error("Unknown whitespace"),
+    error(locatedError("Unknown whitespace", singleLocation(9))),
   )
 })

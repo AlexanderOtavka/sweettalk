@@ -1,6 +1,8 @@
 // lex = translate source code into tokens
 
 import { ok, error, forOkResult } from "./result"
+import { rangeLocation, singleLocation } from "./location"
+import { locatedError } from "./error"
 
 export const symbolLexer = (symbol: string, typeName: string) => (
   subFile: string,
@@ -40,20 +42,33 @@ export const lexFileWithLexers = (file: string, lexers: readonly any[]) => {
     return ok([])
   }
 
-  const { consumed, newToken } = lexWithLexers(file, lexers)
-  if (consumed > 0) {
-    return forOkResult(
-      lexFileWithLexers(file.substring(consumed), lexers),
-      tokens => ok([newToken, ...tokens]),
-    )
-  } else if (file.match(/^[ \t]/)) {
-    return lexFileWithLexers(file.substring(1), lexers)
-  } else {
-    const nonWhitespaceMatch = file.match(/^\S+/)
-    if (nonWhitespaceMatch) {
-      return error(`Unknown symbol: ${nonWhitespaceMatch[0]}`)
+  const tokens = []
+
+  let i = 0
+  while (i < file.length) {
+    const { consumed, newToken } = lexWithLexers(file.substring(i), lexers)
+    if (consumed > 0) {
+      tokens.push({
+        ...newToken,
+        location: rangeLocation(i, i + consumed),
+      })
+      i += consumed
+    } else if (file[i] === " " || file[i] === "\t") {
+      i++
     } else {
-      return error("Unknown whitespace")
+      const nonWhitespaceMatch = file.substring(i).match(/^\S+/)
+      if (nonWhitespaceMatch) {
+        return error(
+          locatedError(
+            `Unknown symbol: ${nonWhitespaceMatch[0]}`,
+            rangeLocation(i, i + nonWhitespaceMatch[0].length),
+          ),
+        )
+      } else {
+        return error(locatedError("Unknown whitespace", singleLocation(i)))
+      }
     }
   }
+
+  return ok(tokens)
 }
