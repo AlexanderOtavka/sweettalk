@@ -1,12 +1,19 @@
 import { assertSomething } from "./maybe"
 import firstSomething from "./firstSomething"
+import { locationLeftBound, locationRightBound } from "./location"
+import { forOkResult, ok, Result } from "./result"
+
+export const startEndFromLocation = (location: any) => ({
+  start: locationLeftBound(location),
+  end: locationRightBound(location),
+})
 
 const compileWithBlock = (
   ast: any,
   environment: any,
   block: any[],
   compilers: readonly any[],
-) =>
+): Result<any, any> =>
   assertSomething(
     firstSomething(compilers, compile =>
       compile(
@@ -17,7 +24,7 @@ const compileWithBlock = (
           compileWithBlock(ast, environment, block, compilers),
       ),
     ),
-    `failed to compile ${ast.type}`,
+    `Nothing matched ${ast.type}`,
   )
 
 export const compileAstToJs = (
@@ -26,26 +33,29 @@ export const compileAstToJs = (
   compilers: readonly any[],
 ) => {
   const block = []
-  const expression = compileWithBlock(ast, environment, block, compilers)
-  return {
-    type: "Program",
-    sourceType: "module",
-    body: [
-      ...block,
-      {
-        type: "ExpressionStatement",
-        expression: {
-          type: "AssignmentExpression",
-          operator: "=",
-          left: {
-            type: "MemberExpression",
-            computed: false,
-            object: { type: "Identifier", name: "module" },
-            property: { type: "Identifier", name: "exports" },
+  return forOkResult(
+    compileWithBlock(ast, environment, block, compilers),
+    expression =>
+      ok({
+        type: "Program",
+        sourceType: "module",
+        body: [
+          ...block,
+          {
+            type: "ExpressionStatement",
+            expression: {
+              type: "AssignmentExpression",
+              operator: "=",
+              left: {
+                type: "MemberExpression",
+                computed: false,
+                object: { type: "Identifier", name: "module" },
+                property: { type: "Identifier", name: "exports" },
+              },
+              right: expression,
+            },
           },
-          right: expression,
-        },
-      },
-    ],
-  }
+        ],
+      }),
+  )
 }

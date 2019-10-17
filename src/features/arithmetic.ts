@@ -1,6 +1,8 @@
 import { lexWithLexers, symbolLexer } from "../lib/lex"
 import match, { ANY } from "../lib/match"
 import { something, nothing } from "../lib/maybe"
+import { ok, forOkResult } from "../lib/result"
+import { startEndFromLocation } from "../lib/compile"
 
 const lexers = [
   symbolLexer("+", "plus"),
@@ -36,18 +38,25 @@ export const compileToJs = (
   match(ast, [
     [
       { type: "binary arithmetic operator" },
-      ({ operator, leftHandSide, rightHandSide }) =>
-        something({
-          type: "BinaryExpression",
-          operator: match(operator, [
-            ["add", _ => "+"],
-            ["subtract", _ => "-"],
-            ["multiply", _ => "*"],
-            ["divide", _ => "/"],
-          ]),
-          left: compile(leftHandSide, environment, block),
-          right: compile(rightHandSide, environment, block),
-        }),
+      ({ operator, leftHandSide, rightHandSide, location }) =>
+        something(
+          forOkResult(compile(leftHandSide, environment, block), left =>
+            forOkResult(compile(rightHandSide, environment, block), right =>
+              ok({
+                type: "BinaryExpression",
+                operator: match(operator, [
+                  ["add", _ => "+"],
+                  ["subtract", _ => "-"],
+                  ["multiply", _ => "*"],
+                  ["divide", _ => "/"],
+                ]),
+                left,
+                right,
+                ...startEndFromLocation(location),
+              }),
+            ),
+          ),
+        ),
     ],
     [ANY, _ => nothing],
   ])

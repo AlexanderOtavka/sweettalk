@@ -1,6 +1,9 @@
 import passThroughTypeMatches from "../lib/passThroughTypeMatches"
 import match, { ANY } from "../lib/match"
 import { something, nothing } from "../lib/maybe"
+import { error, ok } from "../lib/result"
+import { locatedError } from "../lib/error"
+import { startEndFromLocation } from "../lib/compile"
 
 export const lex = (subFile: string) => {
   const match = subFile.match(/^[A-Z][a-z0-9]*(_[A-Z][a-z0-9]*)*/)
@@ -29,13 +32,16 @@ export const compileToJs = (
   match(ast, [
     [
       { type: "name" },
-      ({ name }) =>
-        Object.prototype.hasOwnProperty.call(environment, name)
-          ? something({
-              type: "Identifier",
-              name: environment[name],
-            })
-          : nothing,
+      ({ name, location }) =>
+        something(
+          Object.prototype.hasOwnProperty.call(environment, name)
+            ? ok({
+                type: "Identifier",
+                name: environment[name],
+                ...startEndFromLocation(location),
+              })
+            : error(locatedError(`No variable named '${name}'`, location)),
+        ),
     ],
     [ANY, _ => nothing],
   ])

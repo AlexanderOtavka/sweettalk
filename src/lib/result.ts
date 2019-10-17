@@ -35,7 +35,9 @@ export const forOkResult = <V = any, E = any, R = any>(
 export const assertOk = <V = any>(result: Result<V, any>) => {
   if (result.type === "result ok") {
     return result.value
-  } else {
+  } else if (result.type === "result error") {
     throw Error(JSON.stringify(result.message))
+  } else {
+    throw Error("Not a result")
   }
 }

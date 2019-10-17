@@ -1,8 +1,15 @@
 import { keywordLexer, lexWithLexers, symbolLexer } from "../lib/lex"
 import { locatedError } from "../lib/error"
-import { rangeLocationFromLocations } from "../lib/location"
+import {
+  rangeLocationFromLocations,
+  rangeLocation,
+  locationLeftBound,
+  locationRightBound,
+} from "../lib/location"
 import match, { ANY } from "../lib/match"
 import { something, nothing } from "../lib/maybe"
+import { error, ok, forOkResult } from "../lib/result"
+import { startEndFromLocation } from "../lib/compile"
 
 const lexers = [
   keywordLexer("let"),
@@ -50,7 +57,7 @@ export const parseValue = (tokens: readonly any[], parsers: any) => {
     return nameExpectResult
   }
 
-  const { name } = tokens[1]
+  const name = tokens[1]
 
   const assignExpectResult = expect("declarator", 2)
   if (assignExpectResult !== "ok") {
@@ -85,7 +92,13 @@ export const parseValue = (tokens: readonly any[], parsers: any) => {
 
   return {
     consumed: 4 + bindConsumed + bodyConsumed,
-    ast: { type: "let", name, bind, body },
+    ast: {
+      type: "let",
+      name,
+      bind,
+      body,
+      location: rangeLocationFromLocations(tokens[0].location, body.location),
+    },
   }
 }
 
@@ -98,25 +111,50 @@ export const compileToJs = (
   match(ast, [
     [
       { type: "let" },
-      ({ name, bind, body }) => {
+      ({ name: { name, location: nameLocation }, bind, body, location }) => {
         if (Object.prototype.hasOwnProperty.call(environment, name)) {
-          return nothing
+          return something(
+            error([
+              locatedError(
+                `There is already a variable named '${name}'`,
+                nameLocation,
+              ),
+            ]),
+          )
         }
 
         const jsName = `${name}__${block.length}`
         const newEnvironment = { ...environment, [name]: jsName }
-        block.push({
-          type: "VariableDeclaration",
-          kind: "const",
-          declarations: [
-            {
-              type: "VariableDeclarator",
-              id: { type: "Identifier", name: jsName },
-              init: compile(bind, newEnvironment, block),
-            },
-          ],
-        })
-        return something(compile(body, newEnvironment, block))
+
+        return something(
+          forOkResult(compile(bind, newEnvironment, block), bindJsAst => {
+            block.push({
+              type: "VariableDeclaration",
+              kind: "const",
+              declarations: [
+                {
+                  type: "VariableDeclarator",
+                  id: {
+                    type: "Identifier",
+                    name: jsName,
+                    ...startEndFromLocation(nameLocation),
+                  },
+                  init: bindJsAst,
+                  ...startEndFromLocation(
+                    rangeLocationFromLocations(nameLocation, bind.location),
+                  ),
+                },
+              ],
+              ...startEndFromLocation(
+                rangeLocation(
+                  locationLeftBound(location),
+                  locationRightBound(bind.location),
+                ),
+              ),
+            })
+            return compile(body, newEnvironment, block)
+          }),
+        )
       },
     ],
     [ANY, _ => nothing],

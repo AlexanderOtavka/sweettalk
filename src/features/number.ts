@@ -1,6 +1,8 @@
 import passThroughTypeMatches from "../lib/passThroughTypeMatches"
 import match, { ANY } from "../lib/match"
 import { something, nothing } from "../lib/maybe"
+import { ok } from "../lib/result"
+import { startEndFromLocation } from "../lib/compile"
 
 export const numberToken = (value: number) => ({ type: "number", value })
 
@@ -28,6 +30,12 @@ export const compileToJs = (
   _compile: (ast: any, environment: any, block: any[]) => any,
 ) =>
   match(ast, [
-    [numberAst(ANY), ({ value }) => something({ type: "Literal", value })],
+    [
+      numberAst(ANY),
+      ({ value, location }) =>
+        something(
+          ok({ type: "Literal", value, ...startEndFromLocation(location) }),
+        ),
+    ],
     [ANY, _ => nothing],
   ])

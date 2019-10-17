@@ -10,13 +10,13 @@ export const rangeLocation = (left: number, right: number) => ({
   right,
 })
 
-const locationLeftBound = (location: any) =>
+export const locationLeftBound = (location: any) =>
   match(location, [
     [{ type: "single location" }, ({ value }) => value],
     [{ type: "range location" }, ({ left }) => left],
   ])
 
-const locationRightBound = (location: any) =>
+export const locationRightBound = (location: any) =>
   match(location, [
     [{ type: "single location" }, ({ value }) => value + 1],
     [{ type: "range location" }, ({ right }) => right],

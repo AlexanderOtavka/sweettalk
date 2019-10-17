@@ -6,6 +6,7 @@ import {
 } from "../lib/maybe"
 import firstSomething from "../lib/firstSomething"
 import { locatedError } from "../lib/error"
+import { rangeLocation, rangeLocationFromLocations } from "../lib/location"
 
 // Algorithm taken from https://en.wikipedia.org/wiki/Operator-precedence_parser#Precedence_climbing_method
 const parsePastLeftHandSide = (
@@ -87,6 +88,10 @@ const parsePastLeftHandSide = (
       operator,
       leftHandSide,
       rightHandSide,
+      location: rangeLocationFromLocations(
+        leftHandSide.location,
+        rightHandSide.location,
+      ),
     }
   }
 

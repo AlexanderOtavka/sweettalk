@@ -2,7 +2,8 @@ import test, { ExecutionContext } from "ava"
 import { lex, parseValue, compileToJs } from "./let"
 import { locatedError } from "../lib/error"
 import { rangeLocation } from "../lib/location"
-import { nothing } from "../lib/maybe"
+import { something } from "../lib/maybe"
+import { error, ok } from "../lib/result"
 
 const groupParsers = {
   parseExpression: ([token]) =>
@@ -36,12 +37,12 @@ test("can parse a let expression", t => {
   t.deepEqual(
     parseValue(
       [
-        { type: "let" },
-        { type: "name", name: "Foo" },
-        { type: "declarator" },
-        { type: "expression", id: "bind" },
-        { type: "statement ending" },
-        { type: "expression", id: "body" },
+        { type: "let", location: rangeLocation(0, 4) },
+        { type: "name", name: "Foo", location: rangeLocation(5, 8) },
+        { type: "declarator", location: rangeLocation(9, 10) },
+        { type: "expression", id: "bind", location: rangeLocation(11, 17) },
+        { type: "statement ending", location: rangeLocation(18, 19) },
+        { type: "expression", id: "body", location: rangeLocation(20, 26) },
       ],
       groupParsers,
     ),
@@ -49,9 +50,18 @@ test("can parse a let expression", t => {
       consumed: 6,
       ast: {
         type: "let",
-        name: "Foo",
-        bind: { type: "expression", id: "bind" },
-        body: { type: "expression", id: "body" },
+        name: { type: "name", name: "Foo", location: rangeLocation(5, 8) },
+        bind: {
+          type: "expression",
+          id: "bind",
+          location: rangeLocation(11, 17),
+        },
+        body: {
+          type: "expression",
+          id: "body",
+          location: rangeLocation(20, 26),
+        },
+        location: rangeLocation(0, 26),
       },
     },
   )
@@ -173,14 +183,30 @@ test("errors when a let shadows a variable", t => {
     compileToJs(
       {
         type: "let",
-        name: "Foo",
-        bind: { type: "expression" },
-        body: { type: "expression" },
+        name: { type: "name", name: "Foo", location: rangeLocation(5, 8) },
+        bind: {
+          type: "expression",
+          id: "bind",
+          location: rangeLocation(11, 17),
+        },
+        body: {
+          type: "expression",
+          id: "body",
+          location: rangeLocation(20, 26),
+        },
+        location: rangeLocation(0, 26),
       },
       { Foo: "Foo__0" },
       [],
-      x => x,
+      x => ok(x),
     ),
-    nothing,
+    something(
+      error([
+        locatedError(
+          "There is already a variable named 'Foo'",
+          rangeLocation(5, 8),
+        ),
+      ]),
+    ),
   )
 })
