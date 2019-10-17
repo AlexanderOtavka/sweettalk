@@ -33,11 +33,7 @@ const compileString = (fileString: string) => {
       ),
     that =>
       forOkResult(that, ast => compileAstToJs(ast, {}, features.compileToJs)),
-    that =>
-      forOkResult(that, jsAst => {
-        debugger
-        return ok(generate(jsAst))
-      }),
+    that => forOkResult(that, jsAst => ok(generate(jsAst))),
   )
 }
 
