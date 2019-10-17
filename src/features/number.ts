@@ -21,7 +21,12 @@ export const numberAst = numberToken
 export const parseValue = (tokens: readonly any[]) =>
   passThroughTypeMatches(tokens, ["number"])
 
-export const compileToJs = (ast: any, _compile: (ast: any) => any) =>
+export const compileToJs = (
+  ast: any,
+  _environment: any,
+  _block: any[],
+  _compile: (ast: any, environment: any, block: any[]) => any,
+) =>
   match(ast, [
     [numberAst(ANY), ({ value }) => something({ type: "Literal", value })],
     [ANY, _ => nothing],

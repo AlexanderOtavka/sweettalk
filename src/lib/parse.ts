@@ -8,17 +8,16 @@ const parseWithParsers = (
   parsers: readonly any[],
   groupParsers: any,
 ) => {
-  const errors = []
   for (const parse of parsers) {
     const result = parse(tokens, groupParsers)
     if (result.consumed > 0) {
       return result
-    } else {
-      errors.push(...result.errors)
+    } else if (result.errors.length > 0) {
+      return { consumed: 0, errors: result.errors }
     }
   }
 
-  return { consumed: 0, errors }
+  return { consumed: 0, errors: [] }
 }
 
 export const injectParserDependency = (
@@ -27,8 +26,10 @@ export const injectParserDependency = (
   dependency: any,
 ) => ({
   ...parserGroups,
-  [parserName]: parserGroups[parserName].map((parse: any) => (...args: any[]) =>
-    parse(...args, dependency),
+  [parserName]: parserGroups[parserName].map((parse: any) =>
+    Object.assign((...args: any[]) => parse(...args, dependency), {
+      debugName: parserName,
+    }),
   ),
 })
 
@@ -38,13 +39,13 @@ export const parseProgram = (
   precedence: readonly string[],
 ) => {
   const groupParsers = precedence
-    .map(name => [name, groupMapObject[name]])
+    .map(name => [name, groupMapObject[name] || []])
     .reduce(
       (groups, [name, parsers], i) => {
         // Add parser at the end of the parser list to allow descent into higher
         // precedence terms
         const parsersWithDescent =
-          i < parsers.length - 1
+          i < precedence.length - 1
             ? [
                 ...parsers,
                 (tokens: readonly any[], groupParsers: any) =>

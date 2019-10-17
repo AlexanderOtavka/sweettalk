@@ -15,7 +15,17 @@ export const evalResult = (
 ) => {
   t.deepEqual(
     // tslint:disable-next-line:no-eval
-    pipe(filename).through(loadCode, compileString, assertOk, eval),
+    pipe(filename).through(
+      loadCode,
+      compileString,
+      assertOk,
+      program => `
+        const module = {exports: {}};
+        ${program};
+        module.exports
+      `,
+      eval,
+    ),
     expectedResult,
   )
 }

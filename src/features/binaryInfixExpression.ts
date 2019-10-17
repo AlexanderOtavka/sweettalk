@@ -90,6 +90,10 @@ const parsePastLeftHandSide = (
     }
   }
 
+  if (currentTokenIndex === 0) {
+    return { consumed: 0, errors: [] }
+  }
+
   return {
     consumed: currentTokenIndex,
     ast: leftHandSide,

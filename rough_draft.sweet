@@ -194,7 +194,7 @@ log message "The module was used with an injected dependency $(
     function:: function (Fetch) name
 )"
 
-share: run program with Posix_Io _Env _Args =>
+share run program with Posix_Io _Env _Args =>
     let Tasks = fetch "https://api.tasks.io/tasks" |> parse response <>
     let Formatted_Table = format list_table [
         ["ID", "Done", "Text"]
@@ -208,10 +208,10 @@ share: run program with Posix_Io _Env _Args =>
     write string (Formatted_Table) to file (Posix_Io->Stdout)
     Exit_Success
 
-Task is done => Task->Is_Done
+define Task is done => Task->Is_Done
 
 --- Also defined in list module
-map List (as Things) (are 't)
+define map List (as Things) (are 't)
     through (Transform (as Transform Thing at Index) (is ('t, #) => 'u))
     (returns ['u..]) =>
         let map Index Things through Transform =>
@@ -225,7 +225,7 @@ map List (as Things) (are 't)
                                    through Transform
         map index 0 Things through Transform
 
-share: format List_Table (is [["*"..]..]) =>
+share format List_Table (is [["*"..]..]) =>
     match List_Table with:
         [] then ""
         [First_Row, ...Other_Rows] then:

@@ -27,7 +27,12 @@ export const translateFactorOperator = (token: any) =>
     [ANY, _ => nothing],
   ])
 
-export const compileToJs = (ast: any, compile: (ast: any) => any) =>
+export const compileToJs = (
+  ast: any,
+  environment: any,
+  block: any[],
+  compile: (ast: any, environment: any, block: any[]) => any,
+) =>
   match(ast, [
     [
       { type: "binary arithmetic operator" },
@@ -40,8 +45,8 @@ export const compileToJs = (ast: any, compile: (ast: any) => any) =>
             ["multiply", _ => "*"],
             ["divide", _ => "/"],
           ]),
-          left: compile(leftHandSide),
-          right: compile(rightHandSide),
+          left: compile(leftHandSide, environment, block),
+          right: compile(rightHandSide, environment, block),
         }),
     ],
     [ANY, _ => nothing],

@@ -10,6 +10,24 @@ export const rangeLocation = (left: number, right: number) => ({
   right,
 })
 
+const locationLeftBound = (location: any) =>
+  match(location, [
+    [{ type: "single location" }, ({ value }) => value],
+    [{ type: "range location" }, ({ left }) => left],
+  ])
+
+const locationRightBound = (location: any) =>
+  match(location, [
+    [{ type: "single location" }, ({ value }) => value + 1],
+    [{ type: "range location" }, ({ right }) => right],
+  ])
+
+export const rangeLocationFromLocations = (...locations: readonly any[]) =>
+  rangeLocation(
+    Math.min(...locations.map(locationLeftBound)),
+    Math.max(...locations.map(locationRightBound)),
+  )
+
 const locationNumberToRowColumn = (location: number, sourceCode: string) => {
   if (location >= sourceCode.length) {
     throw Error(`Location (${location}) out of bounds`)

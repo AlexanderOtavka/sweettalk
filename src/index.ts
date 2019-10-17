@@ -8,7 +8,12 @@ const [, , inputFile, outputFile] = process.argv
 const inputCode = fs.readFileSync(inputFile, "utf8")
 const compileResult = compileString(inputCode)
 if (isOk(compileResult)) {
-  fs.writeFileSync(outputFile, `console.log(${compileResult.value})`)
+  fs.writeFileSync(
+    outputFile,
+    `${compileResult.value}
+    // Injected by index.ts
+    console.log(module.exports);\n`,
+  )
 } else {
   for (const error of compileResult.message) {
     process.stderr.write(locatedErrorToString(error, inputCode) + "\n")

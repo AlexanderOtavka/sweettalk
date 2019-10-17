@@ -1,0 +1,4 @@
+let Some_Value = 5 + 3;
+let Triple_That = Some_Value * 3;
+
+Triple_That / Some_Value

@@ -22,15 +22,19 @@ const compileString = (fileString: string) => {
       forOkResult(that, preParsedTokens =>
         parseProgram(
           preParsedTokens,
-          injectParserDependency(features, "parseOperation", [
-            features.translateTermOperator,
-            features.translateFactorOperator,
-          ]),
-          ["parseOperation", "parseValue"],
+          pipe(features).through(that =>
+            injectParserDependency(that, "parseOperation", [
+              features.translateTermOperator,
+              features.translateFactorOperator,
+            ]),
+          ),
+          ["parseExpression", "parseOperation", "parseValue"],
         ),
       ),
     that =>
-      forOkResult(that, ast => ok(compileAstToJs(ast, features.compileToJs))),
+      forOkResult(that, ast =>
+        ok(compileAstToJs(ast, {}, features.compileToJs)),
+      ),
     that => forOkResult(that, jsAst => ok(generate(jsAst))),
   )
 }
