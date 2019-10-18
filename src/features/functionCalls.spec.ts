@@ -24,6 +24,56 @@ test("can parse 1 word", t => {
   )
 })
 
+test("can parse 2 words", t => {
+  t.deepEqual(
+    parseWords(
+      [
+        { type: "word", word: "foo", location: rangeLocation(0, 4) },
+        { type: "word", word: "bar", location: rangeLocation(5, 9) },
+      ],
+      {},
+    ),
+    {
+      consumed: 2,
+      ast: {
+        type: "function call",
+        callee: {
+          type: "name",
+          name: "Foo_Bar",
+          location: rangeLocation(0, 9),
+        },
+        args: [],
+        location: rangeLocation(0, 9),
+      },
+    },
+  )
+})
+
+test("can parse a name and a word", t => {
+  t.deepEqual(
+    parseWords(
+      [
+        { type: "name", name: "Foo", location: rangeLocation(0, 4) },
+        { type: "word", word: "bar", location: rangeLocation(5, 9) },
+      ],
+      {},
+    ),
+    {
+      consumed: 2,
+      ast: {
+        type: "function call",
+        callee: {
+          type: "name",
+          name: "Foo_Bar",
+          location: rangeLocation(0, 9),
+        },
+        args: [{ type: "name", name: "Foo", location: rangeLocation(0, 4) }],
+        location: rangeLocation(0, 9),
+      },
+    },
+  )
+})
+
 test("can parse 1 word with big expression", t => {
   t.deepEqual(
     parseWords(

@@ -1,5 +1,5 @@
 import test from "ava"
-import { parseWords } from "./parens"
+import { parseValue } from "./parens"
 import { rangeLocation } from "../lib/location"
 
 const parsers = {
@@ -11,7 +11,7 @@ const parsers = {
 
 test("parses empty parens", t => {
   t.deepEqual(
-    parseWords(
+    parseValue(
       [
         { type: "left paren", location: rangeLocation(0, 1) },
         { type: "right paren", location: rangeLocation(1, 2) },
@@ -33,7 +33,7 @@ test("parses empty parens", t => {
 
 test("parses parens with 1 expression", t => {
   t.deepEqual(
-    parseWords(
+    parseValue(
       [
         { type: "left paren", location: rangeLocation(0, 1) },
         { type: "expression", location: rangeLocation(1, 5) },
@@ -56,7 +56,7 @@ test("parses parens with 1 expression", t => {
 
 test("parses parens with 1 expression and trailing comma", t => {
   t.deepEqual(
-    parseWords(
+    parseValue(
       [
         { type: "left paren", location: rangeLocation(0, 1) },
         { type: "expression", location: rangeLocation(1, 5) },
@@ -80,7 +80,7 @@ test("parses parens with 1 expression and trailing comma", t => {
 
 test("parses parens with 3 expressions", t => {
   t.deepEqual(
-    parseWords(
+    parseValue(
       [
         { type: "left paren", location: rangeLocation(0, 1) },
         { type: "expression", location: rangeLocation(1, 5) },

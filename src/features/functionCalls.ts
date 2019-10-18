@@ -6,26 +6,31 @@ import { something, nothing } from "../lib/maybe"
 import { startEndFromLocation } from "../lib/compile"
 
 export const parseWords = (tokens: readonly any[], parsers: any) => {
-  if (tokens.length === 0 || tokens[0].type !== "word") {
+  if (
+    tokens.length === 0 ||
+    (tokens[0].type !== "word" && tokens[0].type !== "name")
+  ) {
     return { consumed: 0, errors: [] }
   }
 
-  const words = [tokens[0].word]
+  const words = []
   const args = []
 
-  let consumed = 1
-  let lastNameLocation = tokens[0].location
+  let consumedWords = false
+  let consumed = 0
+  let lastWordLocation = tokens[0].location
   while (consumed < tokens.length) {
     const token = tokens[consumed]
     if (token.type === "word") {
       words.push(token.word)
+      consumedWords = true
       consumed++
-      lastNameLocation = token.location
+      lastWordLocation = token.location
     } else if (token.type === "name") {
       words.push(...nameToWords(token.name))
       args.push(token)
       consumed++
-      lastNameLocation = token.location
+      lastWordLocation = token.location
     } else if (token.type === "literal") {
       args.push(token)
       consumed++
@@ -41,6 +46,10 @@ export const parseWords = (tokens: readonly any[], parsers: any) => {
     }
   }
 
+  if (!consumedWords) {
+    return { consumed: 0, errors: [] }
+  }
+
   return {
     consumed,
     ast: {
@@ -50,7 +59,7 @@ export const parseWords = (tokens: readonly any[], parsers: any) => {
         name: wordsToName(words),
         location: rangeLocationFromLocations(
           tokens[0].location,
-          lastNameLocation,
+          lastWordLocation,
         ),
       },
       args,

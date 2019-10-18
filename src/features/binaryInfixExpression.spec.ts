@@ -5,7 +5,7 @@ import { locatedError } from "../lib/error"
 import { rangeLocation } from "../lib/location"
 
 const groupParsers = {
-  parseValue: ([token]) =>
+  parseConstruction: ([token]) =>
     token && !isNaN(+token.type)
       ? { consumed: 1, ast: token }
       : { consumed: 0, errors: [] },

@@ -34,7 +34,13 @@ const compileString = (fileString: string) => {
               features.translateFactorOperator,
             ]),
           ),
-          ["parseExpression", "parseOperation", "parseValue", "parseWords"],
+          [
+            "parseExpression",
+            "parseOperation",
+            "parseConstruction",
+            "parseWords",
+            "parseValue",
+          ],
         )
       }),
     that =>

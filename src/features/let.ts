@@ -18,7 +18,7 @@ const lexers = [
 ]
 export const lex = (subFile: string) => lexWithLexers(subFile, lexers)
 
-export const parseValue = (tokens: readonly any[], parsers: any) => {
+export const parseConstruction = (tokens: readonly any[], parsers: any) => {
   if (
     tokens.length === 0 ||
     tokens[0].type !== "word" ||

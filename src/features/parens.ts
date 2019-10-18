@@ -67,7 +67,7 @@ const parseList = (
   }
 }
 
-export const parseWords = (tokens: readonly any[], parsers: any) => {
+export const parseValue = (tokens: readonly any[], parsers: any) => {
   if (tokens.length === 0 || tokens[0].type !== "left paren") {
     return { consumed: 0, errors: [] }
   }

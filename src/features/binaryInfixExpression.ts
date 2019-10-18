@@ -6,14 +6,14 @@ import {
 } from "../lib/maybe"
 import firstSomething from "../lib/firstSomething"
 import { locatedError } from "../lib/error"
-import { rangeLocation, rangeLocationFromLocations } from "../lib/location"
+import { rangeLocationFromLocations } from "../lib/location"
 
 // Algorithm taken from https://en.wikipedia.org/wiki/Operator-precedence_parser#Precedence_climbing_method
 const parsePastLeftHandSide = (
   leftHandSide: any,
   tokens: readonly any[],
   precedenceMatchers: readonly any[],
-  parseValue: (tokens: readonly any[]) => any,
+  parseConstruction: (tokens: readonly any[]) => any,
 ) => {
   let currentTokenIndex = 0
   const peekNextToken = () => {
@@ -58,7 +58,7 @@ const parsePastLeftHandSide = (
   while (isSomething(peekedOperator)) {
     const { operator, precedence } = peekedOperator.value
     currentTokenIndex++
-    const rightHandResult = parseValue(tokens.slice(currentTokenIndex))
+    const rightHandResult = parseConstruction(tokens.slice(currentTokenIndex))
     let { consumed: rightHandConsumed, ast: rightHandSide } = rightHandResult
     if (rightHandConsumed === 0) {
       return parseError(peekedOperator.value, rightHandResult.errors)
@@ -73,7 +73,7 @@ const parsePastLeftHandSide = (
         rightHandSide,
         tokens.slice(currentTokenIndex),
         precedenceMatchers.slice(peekedOperator.value.precedence),
-        parseValue,
+        parseConstruction,
       )
       rightHandConsumed = rightHandResult.consumed
       if (rightHandConsumed === 0) {
@@ -114,7 +114,7 @@ export const parseOperation = (
     consumed: leftHandConsumed,
     ast: leftHandSide,
     errors: leftHandErrors,
-  } = parsers.parseValue(tokens)
+  } = parsers.parseConstruction(tokens)
   if (leftHandConsumed === 0) {
     return { consumed: 0, errors: leftHandErrors }
   }
@@ -129,7 +129,7 @@ export const parseOperation = (
     precedenceMatcherGroups.map(matcherGroup => (token: any) =>
       firstSomething(matcherGroup, matcher => matcher(token)),
     ),
-    parsers.parseValue,
+    parsers.parseConstruction,
   )
   if (consumedPastLeftHand === 0) {
     return { consumed: 0, errors: errorsPastLeftHand }

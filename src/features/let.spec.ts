@@ -1,5 +1,5 @@
 import test, { ExecutionContext } from "ava"
-import { lex, parseValue, compileToJs } from "./let"
+import { lex, parseConstruction, compileToJs } from "./let"
 import { locatedError } from "../lib/error"
 import { rangeLocation } from "../lib/location"
 import { something } from "../lib/maybe"
@@ -28,7 +28,7 @@ test("can lex statement ending", t => {
 
 test("can parse a let expression", t => {
   t.deepEqual(
-    parseValue(
+    parseConstruction(
       [
         { type: "word", word: "let", location: rangeLocation(0, 4) },
         { type: "name", name: "Foo", location: rangeLocation(5, 8) },
@@ -62,7 +62,7 @@ test("can parse a let expression", t => {
 
 test("ignores expressions not starting with let", t => {
   t.deepEqual(
-    parseValue(
+    parseConstruction(
       [
         { type: "word", word: "foo" },
         { type: "name", name: "Foo" },
@@ -95,7 +95,7 @@ const testMissingToken = (
   error: any,
 ) => {
   t.deepEqual(
-    parseValue(
+    parseConstruction(
       tokens.filter((_token, i) => i !== missingTokenIndex),
       groupParsers,
     ),
@@ -111,10 +111,13 @@ const testEOF = (
   missingTokenIndex: number,
   error: any,
 ) => {
-  t.deepEqual(parseValue(tokens.slice(0, missingTokenIndex), groupParsers), {
-    consumed: 0,
-    errors: [error],
-  })
+  t.deepEqual(
+    parseConstruction(tokens.slice(0, missingTokenIndex), groupParsers),
+    {
+      consumed: 0,
+      errors: [error],
+    },
+  )
 }
 
 test(

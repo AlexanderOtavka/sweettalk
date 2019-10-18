@@ -1,3 +1,6 @@
 let Array = require "./lib/array.js";
+let Number_Times_Two = require "./lib/timesTwo.js";
 
-array (1, 2, 3)
+let Number = 1;
+
+array (1, Number times two, 3)
