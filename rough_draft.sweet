@@ -99,11 +99,11 @@ do a thing (and another one (a third with the other one)?)?
         )
 
 -- Annotating parameters with types
-write String (is "*") to File (is system::io::file) =>
-map onto list (Transform (is *=>*), List (is [*])) =>
-print Things (are *) =>
-print Things (is [*]) =>
-print things (Things (is [*])) =>
+write String [is string] to File [is system::io::file] =>
+map onto list [Transform [is (any) => any], List [is list (any)] =>
+print Things [are any] =>
+print Things [is list (any)] =>
+print things (Things [is list (any)]) =>
 
 -------- How function calls work:
 
@@ -126,22 +126,19 @@ write string to file (String) (File) -- can't do this, there must be a word betw
 (curried "foo") ("bar")
 
 -- Call by name:
-write string to file (String = Other_String, File = File) -- keyed by the argument names
-write string to file (=String, =File) -- if the names match, prefix with = to pass by name
-write string to file (=File, =String) -- order doesn't matter
-write string (String = Other_String) to file (=File) -- as with call by order, parens can go wherever
+write string to file {String = Other_String, File = File} -- keyed by the argument names
+write string to file {String, File} -- if the names match, pass by name
+write string to file {File, String} -- order doesn't matter
 
 -- BAD
-write =String to =File -- this is not a thing
--- instead, just name your function Write To and call it
-write (=String) to (=File)
+write string {String = Other_String} to {File} file -- curly braces must go at end!
 
 -- Call by order and name:
-write String to file (File = File) -- you can combine order and name
-write string to file (String, File = File)
+write String to file {File = File} -- you can combine order and name
+write string to file (String) {File = File}
 
 -- Referencing a function:
-handle Event (returns nothing) => log message "x: $(Event->x), y: $(Event->y)"
+handle Event [returns nothing] => log message "x: [Event->x], y: [Event->y]"
 www::dom:: when dom_event "click" happens do: Handle Event
 
 -- Assigning a function to a variable
@@ -208,24 +205,25 @@ share run program with Posix_Io _Env _Args =>
     write string (Formatted_Table) to file (Posix_Io->Stdout)
     Exit_Success
 
-define Task is done => Task->Is_Done
+define => Task is done = Task->Is_Done
 
 --- Also defined in list module
-define map List (as Things) (are 't)
-    through (Transform (as Transform Thing at Index) (is ('t, #) => 'u))
-    (returns ['u..]) =>
-        let map Index Things through Transform =>
-            match Things with:
-                [] then []
-                [Thing, ...Others] then
-                    list:: prepend
-                        element:
-                            transform Thing at Index
-                        onto list: map index (Index + 1) things (Others)
-                                   through Transform
+define => map List (as Things) [are 't]
+    through (Transform (as Transform Thing at Index) [is ('t, #) => 'u])
+    [returns ['u..]] =
         map index 0 Things through Transform
+        where:
+            => map Index Things through Transform =
+                match Things with:
+                    [] then [];
+                    [Thing, ...Others] then
+                        list:: prepend
+                            element:
+                                transform Thing at Index
+                            onto list: map index (Index + 1) things (Others)
+                                       through Transform;
 
-share format List_Table (is [["*"..]..]) =>
+share => format List_Table (is [["*"..]..]) =
     match List_Table with:
         [] then ""
         [First_Row, ...Other_Rows] then:

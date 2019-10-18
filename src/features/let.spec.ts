@@ -12,13 +12,6 @@ const groupParsers = {
       : { consumed: 0, errors: [] },
 }
 
-test("can lex 'let'", t => {
-  t.deepEqual(lex("let foo"), {
-    consumed: 3,
-    newToken: { type: "let" },
-  })
-})
-
 test("can lex declarator", t => {
   t.deepEqual(lex("= bar"), {
     consumed: 1,
@@ -37,7 +30,7 @@ test("can parse a let expression", t => {
   t.deepEqual(
     parseValue(
       [
-        { type: "let", location: rangeLocation(0, 4) },
+        { type: "word", word: "let", location: rangeLocation(0, 4) },
         { type: "name", name: "Foo", location: rangeLocation(5, 8) },
         { type: "declarator", location: rangeLocation(9, 10) },
         { type: "expression", id: "bind", location: rangeLocation(11, 17) },
@@ -71,7 +64,7 @@ test("ignores expressions not starting with let", t => {
   t.deepEqual(
     parseValue(
       [
-        { type: "foo" },
+        { type: "word", word: "foo" },
         { type: "name", name: "Foo" },
         { type: "declarator" },
         { type: "expression", id: "bind" },
@@ -88,7 +81,7 @@ test("ignores expressions not starting with let", t => {
 })
 
 const tokens = [
-  { type: "let", location: rangeLocation(0, 4) },
+  { type: "word", word: "let", location: rangeLocation(0, 4) },
   { type: "name", name: "Foo", location: rangeLocation(5, 8) },
   { type: "declarator", location: rangeLocation(9, 10) },
   { type: "expression", id: "bind", location: rangeLocation(11, 17) },

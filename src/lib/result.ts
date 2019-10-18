@@ -18,26 +18,42 @@ export const error = <T>(message: T): Error<T> => ({
   message,
 })
 
-export const isOk = <V, E>(result: Result<V, E>): result is Ok<V> =>
-  result.type === "result ok"
+export const isOk = <V, E>(result: Result<V, E>): result is Ok<V> => {
+  const { type } = result
+  if (type !== "result ok" && type !== "result error") {
+    throw Error("Not a result")
+  }
+  return type === "result ok"
+}
 
 export const forOkResult = <V = any, E = any, R = any>(
   result: Result<V, E>,
   transform: (value: V) => Result<R, E>,
 ) => {
-  if (result.type === "result ok") {
+  if (isOk(result)) {
     return transform(result.value)
   } else {
     return result
   }
 }
 
+export const allOkResults = <V, E>(results: ReadonlyArray<Result<V, E>>) => {
+  const values = []
+  for (const result of results) {
+    if (isOk(result)) {
+      values.push(result.value)
+    } else {
+      return result
+    }
+  }
+
+  return ok(values)
+}
+
 export const assertOk = <V = any>(result: Result<V, any>) => {
-  if (result.type === "result ok") {
+  if (isOk(result)) {
     return result.value
-  } else if (result.type === "result error") {
-    throw Error(JSON.stringify(result.message))
   } else {
-    throw Error("Not a result")
+    throw Error(JSON.stringify(result.message))
   }
 }

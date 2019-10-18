@@ -1,10 +1,5 @@
 import test from "ava"
-import {
-  symbolLexer,
-  keywordLexer,
-  lexWithLexers,
-  lexFileWithLexers,
-} from "./lex"
+import { symbolLexer, lexWithLexers, lexFileWithLexers } from "./lex"
 import { ok, error } from "./result"
 import { locatedError } from "./error"
 import { singleLocation, rangeLocation } from "./location"
@@ -33,39 +28,13 @@ test("symbolLexer ignores symbols further in the file", t => {
   t.deepEqual(ltLexer("5 < 7"), { consumed: 0 })
 })
 
-const ifLexer = keywordLexer("if")
-
-test("keywordLexer consumes matching words", t => {
-  t.deepEqual(ifLexer("if true"), {
-    consumed: 2,
-    newToken: { type: "if" },
-  })
-})
-
-test("keywordLexer splits on symbols", t => {
-  t.deepEqual(ifLexer("if-5 then"), {
-    consumed: 2,
-    newToken: { type: "if" },
-  })
-  t.deepEqual(ifLexer("if) + 5 then"), {
-    consumed: 2,
-    newToken: { type: "if" },
-  })
-})
-
-test("keywordLexer ignores word substrings", t => {
-  t.deepEqual(ifLexer("if_ 5"), { consumed: 0 })
-  t.deepEqual(ifLexer("iff 5"), { consumed: 0 })
-  t.deepEqual(ifLexer("if5 then"), { consumed: 0 })
-})
-
-test("keywordLexer handles words at the end of the file", t => {
-  t.deepEqual(ifLexer("if"), { consumed: 2, newToken: { type: "if" } })
-})
-
-test("keywordLexer ignores words further in the file", t => {
-  t.deepEqual(ifLexer("5 + if 7"), { consumed: 0 })
-})
+const ifLexer = (subFile: string) => {
+  if (subFile.match(/^if/)) {
+    return { consumed: 2, newToken: { type: "if" } }
+  } else {
+    return { consumed: 0 }
+  }
+}
 
 const fooLexer = (subFile: string) => {
   if (subFile.match(/^foo/)) {

@@ -1,4 +1,4 @@
-import { keywordLexer, lexWithLexers, symbolLexer } from "../lib/lex"
+import { lexWithLexers, symbolLexer } from "../lib/lex"
 import { locatedError } from "../lib/error"
 import {
   rangeLocationFromLocations,
@@ -10,57 +10,32 @@ import match, { ANY } from "../lib/match"
 import { something, nothing } from "../lib/maybe"
 import { error, ok, forOkResult } from "../lib/result"
 import { startEndFromLocation } from "../lib/compile"
+import { expectToken } from "../lib/parse"
 
 const lexers = [
-  keywordLexer("let"),
   symbolLexer("=", "declarator"),
   symbolLexer(";", "statement ending"),
 ]
 export const lex = (subFile: string) => lexWithLexers(subFile, lexers)
 
 export const parseValue = (tokens: readonly any[], parsers: any) => {
-  if (tokens.length === 0 || tokens[0].type !== "let") {
+  if (
+    tokens.length === 0 ||
+    tokens[0].type !== "word" ||
+    tokens[0].word !== "let"
+  ) {
     return { consumed: 0, errors: [] }
   }
 
-  const expect = (type: string, index: number) => {
-    if (tokens.length <= index) {
-      return {
-        consumed: 0,
-        errors: [
-          locatedError(
-            `Expected ${type}, but got eof instead!`,
-            rangeLocationFromLocations(
-              tokens[0].location,
-              tokens[index - 1].location,
-            ),
-          ),
-        ],
-      }
-    }
-    if (tokens[index].type !== type) {
-      return {
-        consumed: 0,
-        errors: [
-          locatedError(
-            `Expected ${type}, but got '${tokens[index].type}'`,
-            tokens[index].location,
-          ),
-        ],
-      }
-    }
-    return "ok"
-  }
-
-  const nameExpectResult = expect("name", 1)
-  if (nameExpectResult !== "ok") {
+  const nameExpectResult = expectToken(tokens, 1, "name")
+  if (nameExpectResult.consumed === 0) {
     return nameExpectResult
   }
 
   const name = tokens[1]
 
-  const assignExpectResult = expect("declarator", 2)
-  if (assignExpectResult !== "ok") {
+  const assignExpectResult = expectToken(tokens, 2, "declarator")
+  if (assignExpectResult.consumed === 0) {
     return assignExpectResult
   }
 
@@ -73,11 +48,12 @@ export const parseValue = (tokens: readonly any[], parsers: any) => {
     return { consumed: 0, errors: bindErrors }
   }
 
-  const statementEndingExpectResult = expect(
-    "statement ending",
+  const statementEndingExpectResult = expectToken(
+    tokens,
     3 + bindConsumed,
+    "statement ending",
   )
-  if (statementEndingExpectResult !== "ok") {
+  if (statementEndingExpectResult.consumed === 0) {
     return statementEndingExpectResult
   }
 

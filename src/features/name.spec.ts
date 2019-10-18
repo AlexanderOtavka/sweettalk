@@ -33,7 +33,7 @@ test("won't lex invalid names", t => {
   t.deepEqual(lex("Bar_baz ="), { consumed: 0 })
   t.deepEqual(lex("ZZ ="), { consumed: 0 })
   t.deepEqual(lex("ToBeHonest ="), { consumed: 0 })
-  t.deepEqual(lex("T_b_h ="), { consumed: 0 })
+  t.deepEqual(lex("T_B_3 ="), { consumed: 0 })
 })
 
 test("errors when a name isn't in the environment", t => {

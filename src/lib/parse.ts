@@ -1,4 +1,56 @@
 import { ok, error } from "./result"
+import { locatedError } from "./error"
+import { rangeLocationFromLocations } from "./location"
+
+export const expectAnyToken = (
+  tokens: readonly any[],
+  index: number,
+  type: string = "",
+) => {
+  if (tokens.length <= index) {
+    return {
+      consumed: 0,
+      errors: [
+        locatedError(
+          type ? `Expected ${type}, but got eof instead!` : "Unexpected eof!",
+          rangeLocationFromLocations(
+            tokens[0].location,
+            tokens[index - 1].location,
+          ),
+        ),
+      ],
+    }
+  }
+
+  return { consumed: 1, token: tokens[index] }
+}
+
+export const expectToken = (
+  tokens: readonly any[],
+  index: number,
+  type: string,
+) => {
+  const expectAnyResult = expectAnyToken(tokens, index, type)
+  if (expectAnyResult.consumed === 0) {
+    return expectAnyResult
+  }
+
+  const token = tokens[index]
+
+  if (token.type !== type) {
+    return {
+      consumed: 0,
+      errors: [
+        locatedError(
+          `Expected ${type}, but got '${token.type}'`,
+          token.location,
+        ),
+      ],
+    }
+  }
+
+  return { consumed: 1, token }
+}
 
 /**
  * Parse a list of tokens into an AST.
@@ -48,8 +100,11 @@ export const parseProgram = (
           i < precedence.length - 1
             ? [
                 ...parsers,
-                (tokens: readonly any[], groupParsers: any) =>
-                  groupParsers[precedence[i + 1]](tokens),
+                Object.assign(
+                  (tokens: readonly any[], groupParsers: any) =>
+                    groupParsers[precedence[i + 1]](tokens),
+                  { debugName: `higherThan(${name})` },
+                ),
               ]
             : parsers
         groups[name] = (tokens: readonly any[]) =>

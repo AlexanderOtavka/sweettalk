@@ -1,6 +1,6 @@
 // lex = translate source code into tokens
 
-import { ok, error, forOkResult } from "./result"
+import { ok, error } from "./result"
 import { rangeLocation, singleLocation } from "./location"
 import { locatedError } from "./error"
 
@@ -12,15 +12,6 @@ export const symbolLexer = (symbol: string, typeName: string) => (
     (subFile.length === symbol.length || subFile[symbol.length].match(/[\s\w]/))
   ) {
     return { consumed: symbol.length, newToken: { type: typeName } }
-  } else {
-    return { consumed: 0 }
-  }
-}
-
-export const keywordLexer = (keyword: string) => (subFile: string) => {
-  const match = subFile.match(/^\w+/)
-  if (match && match[0] === keyword) {
-    return { consumed: keyword.length, newToken: { type: keyword } }
   } else {
     return { consumed: 0 }
   }

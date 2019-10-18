@@ -9,6 +9,10 @@ import { compileAstToJs } from "./lib/compile"
 import { ok, forOkResult } from "./lib/result"
 import pipe from "./lib/pipe"
 
+const environment = {
+  Require: "require",
+}
+
 const compileString = (fileString: string) => {
   const features = loadFeatures(path.join(__dirname, "./features"), {
     readdirSync,
@@ -17,10 +21,12 @@ const compileString = (fileString: string) => {
 
   return pipe(lexFileWithLexers(fileString, features.lex)).through(
     that =>
-      forOkResult(that, tokens => ok(preParse(tokens, features.preParse))),
+      forOkResult(that, tokens => {
+        return ok(preParse(tokens, features.preParse))
+      }),
     that =>
-      forOkResult(that, preParsedTokens =>
-        parseProgram(
+      forOkResult(that, preParsedTokens => {
+        return parseProgram(
           preParsedTokens,
           pipe(features).through(that =>
             injectParserDependency(that, "parseOperation", [
@@ -28,12 +34,17 @@ const compileString = (fileString: string) => {
               features.translateFactorOperator,
             ]),
           ),
-          ["parseExpression", "parseOperation", "parseValue"],
-        ),
-      ),
+          ["parseExpression", "parseOperation", "parseValue", "parseWords"],
+        )
+      }),
     that =>
-      forOkResult(that, ast => compileAstToJs(ast, {}, features.compileToJs)),
-    that => forOkResult(that, jsAst => ok(generate(jsAst))),
+      forOkResult(that, ast => {
+        return compileAstToJs(ast, environment, features.compileToJs)
+      }),
+    that =>
+      forOkResult(that, jsAst => {
+        return ok(generate(jsAst))
+      }),
   )
 }
 

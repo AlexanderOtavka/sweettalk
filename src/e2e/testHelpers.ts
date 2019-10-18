@@ -5,8 +5,10 @@ import compileString from "../compileString"
 import { assertOk, Result, error } from "../lib/result"
 import pipe from "../lib/pipe"
 
+const currentDir = path.resolve("./src/e2e")
+
 const loadCode = (filename: string) =>
-  fs.readFileSync(path.join("./src/e2e", filename), "utf8")
+  fs.readFileSync(path.join(currentDir, filename), "utf8")
 
 export const evalResult = (
   t: ExecutionContext,
@@ -20,11 +22,20 @@ export const evalResult = (
       compileString,
       assertOk,
       program => `
-        const module = {exports: {}};
-        ${program};
-        module.exports
+        (module, require, exports) => {
+          ${program};
+        }
       `,
       eval,
+      runProgram => {
+        const mod = {
+          exports: {},
+          require: (filename: string) =>
+            require(path.join(currentDir, filename)),
+        }
+        runProgram(mod, mod.require, mod.exports)
+        return mod.exports
+      },
     ),
     expectedResult,
   )
