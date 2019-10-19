@@ -12,7 +12,7 @@ if (isOk(compileResult)) {
     outputFile,
     `${compileResult.value}
     // Injected by index.ts
-    console.log(module.exports);\n`,
+    console.log(exports);\n`,
   )
 } else {
   for (const error of compileResult.message) {

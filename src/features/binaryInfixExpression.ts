@@ -132,7 +132,14 @@ export const parseOperation = (
     parsers.parseConstruction,
   )
   if (consumedPastLeftHand === 0) {
-    return { consumed: 0, errors: errorsPastLeftHand }
+    if (errorsPastLeftHand.length > 0) {
+      return { consumed: 0, errors: errorsPastLeftHand }
+    } else {
+      return {
+        consumed: leftHandConsumed,
+        ast: leftHandSide,
+      }
+    }
   }
 
   return {

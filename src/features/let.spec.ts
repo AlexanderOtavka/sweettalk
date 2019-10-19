@@ -1,5 +1,5 @@
 import test, { ExecutionContext } from "ava"
-import { lex, parseConstruction, compileToJs } from "./let"
+import { parseConstruction, compileToJs } from "./let"
 import { locatedError } from "../lib/error"
 import { rangeLocation } from "../lib/location"
 import { something } from "../lib/maybe"
@@ -11,20 +11,6 @@ const groupParsers = {
       ? { consumed: 1, ast: token }
       : { consumed: 0, errors: [] },
 }
-
-test("can lex declarator", t => {
-  t.deepEqual(lex("= bar"), {
-    consumed: 1,
-    newToken: { type: "declarator" },
-  })
-})
-
-test("can lex statement ending", t => {
-  t.deepEqual(lex("; baz"), {
-    consumed: 1,
-    newToken: { type: "statement ending" },
-  })
-})
 
 test("can parse a let expression", t => {
   t.deepEqual(
@@ -87,6 +73,7 @@ const tokens = [
   { type: "expression", id: "bind", location: rangeLocation(11, 17) },
   { type: "statement ending", location: rangeLocation(18, 19) },
   { type: "expression", id: "body", location: rangeLocation(20, 26) },
+  { type: "other", location: rangeLocation(29, 30) },
 ]
 
 const testMissingToken = (
@@ -124,14 +111,20 @@ test(
   "errors when name is missing",
   testMissingToken,
   1,
-  locatedError("Expected name, but got 'declarator'", rangeLocation(9, 10)),
+  locatedError(
+    "Expected declaration, but got 'declarator'",
+    rangeLocation(9, 10),
+  ),
 )
 
 test(
   "errors when there is EOF instead of name",
   testEOF,
   1,
-  locatedError("Expected name, but got eof instead!", rangeLocation(0, 4)),
+  locatedError(
+    "Expected declaration, but got eof instead!",
+    rangeLocation(0, 4),
+  ),
 )
 
 test(
@@ -150,7 +143,27 @@ test(
   2,
   locatedError(
     "Expected declarator, but got eof instead!",
-    rangeLocation(0, 8),
+    rangeLocation(5, 8),
+  ),
+)
+
+test(
+  "errors when bind is missing",
+  testMissingToken,
+  3,
+  locatedError(
+    "Expected expression, but got 'statement ending'",
+    rangeLocation(18, 19),
+  ),
+)
+
+test(
+  "errors when there is EOF instead of bind",
+  testEOF,
+  3,
+  locatedError(
+    "Expected expression, but got eof instead!",
+    rangeLocation(5, 10),
   ),
 )
 
@@ -170,7 +183,24 @@ test(
   4,
   locatedError(
     "Expected statement ending, but got eof instead!",
-    rangeLocation(0, 17),
+    rangeLocation(5, 17),
+  ),
+)
+
+test(
+  "errors when body is missing",
+  testMissingToken,
+  5,
+  locatedError("Expected expression, but got 'other'", rangeLocation(29, 30)),
+)
+
+test(
+  "errors when there is EOF instead of body",
+  testEOF,
+  5,
+  locatedError(
+    "Expected expression, but got eof instead!",
+    rangeLocation(0, 19),
   ),
 )
 

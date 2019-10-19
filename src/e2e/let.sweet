@@ -1,4 +1,5 @@
-let Some_Value = 5 + 3;
-let Triple_That = Some_Value * 3;
+share Result =
+  let Some_Value = 5 + 3;
+  let Triple_That = Some_Value * 3;
 
-Triple_That / Some_Value
+  Triple_That / Some_Value;

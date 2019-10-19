@@ -4,7 +4,7 @@ import { generate } from "astring"
 import loadFeatures from "./lib/loadFeatures"
 import { lexFileWithLexers } from "./lib/lex"
 import { preParse } from "./lib/preParse"
-import { parseProgram, injectParserDependency } from "./lib/parse"
+import { parseProgramWithFeatures, injectParserDependency } from "./lib/parse"
 import { compileAstToJs } from "./lib/compile"
 import { ok, forOkResult } from "./lib/result"
 import pipe from "./lib/pipe"
@@ -26,7 +26,7 @@ const compileString = (fileString: string) => {
       }),
     that =>
       forOkResult(that, preParsedTokens => {
-        return parseProgram(
+        return parseProgramWithFeatures(
           preParsedTokens,
           pipe(features).through(that =>
             injectParserDependency(that, "parseOperation", [
@@ -34,6 +34,7 @@ const compileString = (fileString: string) => {
               features.translateFactorOperator,
             ]),
           ),
+          ["parseProgram", "parseStatement"],
           [
             "parseExpression",
             "parseOperation",

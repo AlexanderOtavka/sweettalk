@@ -9,7 +9,9 @@ export const symbolLexer = (symbol: string, typeName: string) => (
 ) => {
   if (
     subFile.substring(0, symbol.length) === symbol &&
-    (subFile.length === symbol.length || subFile[symbol.length].match(/[\s\w]/))
+    (subFile.length === symbol.length ||
+      subFile[symbol.length].match(/[\s\w]/) ||
+      "(){}[]".split("").includes(symbol))
   ) {
     return { consumed: symbol.length, newToken: { type: typeName } }
   } else {

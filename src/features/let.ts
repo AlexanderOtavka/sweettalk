@@ -1,4 +1,3 @@
-import { lexWithLexers, symbolLexer } from "../lib/lex"
 import { locatedError } from "../lib/error"
 import {
   rangeLocationFromLocations,
@@ -8,15 +7,10 @@ import {
 } from "../lib/location"
 import match, { ANY } from "../lib/match"
 import { something, nothing } from "../lib/maybe"
-import { error, ok, forOkResult } from "../lib/result"
+import { error, forOkResult } from "../lib/result"
 import { startEndFromLocation } from "../lib/compile"
-import { expectToken } from "../lib/parse"
-
-const lexers = [
-  symbolLexer("=", "declarator"),
-  symbolLexer(";", "statement ending"),
-]
-export const lex = (subFile: string) => lexWithLexers(subFile, lexers)
+import parseDeclaration from "../lib/parseDeclaration"
+import { expectConsumption } from "../lib/parse"
 
 export const parseConstruction = (tokens: readonly any[], parsers: any) => {
   if (
@@ -27,47 +21,39 @@ export const parseConstruction = (tokens: readonly any[], parsers: any) => {
     return { consumed: 0, errors: [] }
   }
 
-  const nameExpectResult = expectToken(tokens, 1, "name")
-  if (nameExpectResult.consumed === 0) {
-    return nameExpectResult
-  }
-
-  const name = tokens[1]
-
-  const assignExpectResult = expectToken(tokens, 2, "declarator")
-  if (assignExpectResult.consumed === 0) {
-    return assignExpectResult
-  }
-
   const {
-    consumed: bindConsumed,
-    ast: bind,
-    errors: bindErrors,
-  } = parsers.parseExpression(tokens.slice(3))
-  if (bindConsumed === 0) {
-    return { consumed: 0, errors: bindErrors }
+    consumed: declarationConsumed,
+    ast: declaration,
+    errors: declarationErrors,
+  } = expectConsumption(
+    tokens,
+    1,
+    parseDeclaration(tokens.slice(1), parsers),
+    "declaration",
+  )
+  if (declarationConsumed === 0) {
+    return { consumed: 0, errors: declarationErrors }
   }
 
-  const statementEndingExpectResult = expectToken(
-    tokens,
-    3 + bindConsumed,
-    "statement ending",
-  )
-  if (statementEndingExpectResult.consumed === 0) {
-    return statementEndingExpectResult
-  }
+  // TODO: just put the declaration straight into the AST
+  const { name, bind } = declaration
 
   const {
     consumed: bodyConsumed,
     ast: body,
     errors: bodyErrors,
-  } = parsers.parseExpression(tokens.slice(4 + bindConsumed))
+  } = expectConsumption(
+    tokens,
+    1 + declarationConsumed,
+    parsers.parseExpression(tokens.slice(1 + declarationConsumed)),
+    "expression",
+  )
   if (bodyConsumed === 0) {
     return { consumed: 0, errors: bodyErrors }
   }
 
   return {
-    consumed: 4 + bindConsumed + bodyConsumed,
+    consumed: 1 + declarationConsumed + bodyConsumed,
     ast: {
       type: "let",
       name,

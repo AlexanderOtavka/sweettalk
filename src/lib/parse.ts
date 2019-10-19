@@ -30,26 +30,44 @@ export const expectToken = (
   index: number,
   type: string,
 ) => {
+  const token = tokens[index]
+  return expectConsumption(
+    tokens,
+    index,
+    token && token.type === type
+      ? { consumed: 1, token }
+      : { consumed: 0, errors: [] },
+    type,
+  )
+}
+
+export const expectConsumption = (
+  tokens: readonly any[],
+  index: number,
+  result: any,
+  type: string = "",
+) => {
   const expectAnyResult = expectAnyToken(tokens, index, type)
   if (expectAnyResult.consumed === 0) {
     return expectAnyResult
   }
 
-  const token = tokens[index]
-
-  if (token.type !== type) {
+  if (result.consumed === 0 && result.errors.length === 0) {
+    const token = tokens[index]
     return {
       consumed: 0,
       errors: [
         locatedError(
-          `Expected ${type}, but got '${token.type}'`,
+          type
+            ? `Expected ${type}, but got '${token.type}'`
+            : `Unexpected ${token.type}`,
           token.location,
         ),
       ],
     }
   }
 
-  return { consumed: 1, token }
+  return result
 }
 
 /**
@@ -85,47 +103,67 @@ export const injectParserDependency = (
   ),
 })
 
-export const parseProgram = (
-  tokens: readonly any[],
+const createParsers = (
   groupMapObject: any,
   precedence: readonly string[],
+  mixinParsers: any = {},
 ) => {
-  const groupParsers = precedence
-    .map(name => [name, groupMapObject[name] || []])
-    .reduce(
-      (groups, [name, parsers], i) => {
-        // Add parser at the end of the parser list to allow descent into higher
-        // precedence terms
-        const parsersWithDescent =
-          i < precedence.length - 1
-            ? [
-                ...parsers,
-                Object.assign(
-                  (tokens: readonly any[], groupParsers: any) =>
-                    groupParsers[precedence[i + 1]](tokens),
-                  { debugName: `higherThan(${name})` },
-                ),
-              ]
-            : parsers
-        groups[name] = (tokens: readonly any[]) =>
-          parseWithParsers(tokens, parsersWithDescent, groupParsers)
-        return groups
-      },
-      {} as any,
-    )
+  const parsers = {
+    ...mixinParsers,
+    ...precedence
+      .map(name => [name, groupMapObject[name] || []])
+      .reduce(
+        (groups, [name, parserList], i) => {
+          // Add parser at the end of the parser list to allow descent into higher
+          // precedence terms
+          const parsersWithDescent =
+            i < precedence.length - 1
+              ? [
+                  ...parserList,
+                  Object.assign(
+                    (tokens: readonly any[], groupParsers: any) =>
+                      groupParsers[precedence[i + 1]](tokens),
+                    { debugName: `higherThan(${name})` },
+                  ),
+                ]
+              : parserList
+          groups[name] = (tokens: readonly any[]) =>
+            parseWithParsers(tokens, parsersWithDescent, parsers)
+          return groups
+        },
+        {} as any,
+      ),
+  }
+  return parsers
+}
 
-  if (tokens.length === 0) {
-    return error("Cannot parse empty token list")
+export const parseProgramWithFeatures = (
+  tokens: readonly any[],
+  groupMapObject: any,
+  programPrecedence: readonly string[],
+  expressionPrecedence: readonly string[],
+) => {
+  const expressionParsers = createParsers(groupMapObject, expressionPrecedence)
+  const programParsers = createParsers(
+    groupMapObject,
+    programPrecedence,
+    expressionParsers,
+  )
+
+  const parseProgramStatement = programParsers[programPrecedence[0]]
+  const { consumed, ast, errors } = parseProgramStatement(tokens)
+  if (consumed === 0 && errors.length > 0) {
+    return error(errors)
   } else {
-    const { consumed, ast, errors } = groupParsers[precedence[0]](tokens)
-    if (consumed === 0) {
-      return error(errors)
+    if (consumed < tokens.length) {
+      return error(
+        locatedError(
+          `Parser didn't consume everything.  Stopped at ${tokens[consumed].type}`,
+          tokens[consumed].location,
+        ),
+      )
     } else {
-      if (consumed < tokens.length) {
-        return error("Parser didn't consume everything")
-      } else {
-        return ok(ast)
-      }
+      return ok(ast)
     }
   }
 }
