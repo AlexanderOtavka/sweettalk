@@ -1,5 +1,4 @@
 import { expectConsumption } from "../lib/parse"
-import parseDeclaration from "../lib/parseDeclaration"
 import { rangeLocationFromLocations } from "../lib/location"
 import match, { ANY } from "../lib/match"
 import { something, nothing } from "../lib/maybe"
@@ -25,7 +24,7 @@ export const parsers = {
     } = expectConsumption(
       tokens,
       1,
-      parseDeclaration(tokens.slice(1), parsers),
+      parsers.parseDeclaration(tokens.slice(1), parsers),
       "declaration",
     )
     if (declarationConsumed === 0) {

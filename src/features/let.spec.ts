@@ -10,44 +10,43 @@ const groupParsers = {
     token && token.type === "expression"
       ? { consumed: 1, ast: token }
       : { consumed: 0, errors: [] },
+  parseDeclaration: ([token]) =>
+    token && token.type === "declaration"
+      ? { consumed: 1, ast: token }
+      : { consumed: 0, errors: [] },
 }
 
+const tokens = [
+  { type: "word", word: "let", location: rangeLocation(0, 4) },
+  {
+    type: "declaration",
+    name: "Foo",
+    bind: "bind",
+    location: rangeLocation(5, 19),
+  },
+  { type: "expression", id: "body", location: rangeLocation(20, 26) },
+  { type: "other", location: rangeLocation(29, 30) },
+]
+
 test("can parse a let expression", t => {
-  t.deepEqual(
-    parsers.parseConstruction(
-      [
-        { type: "word", word: "let", location: rangeLocation(0, 4) },
-        { type: "name", name: "Foo", location: rangeLocation(5, 8) },
-        { type: "declarator", location: rangeLocation(9, 10) },
-        { type: "expression", id: "bind", location: rangeLocation(11, 17) },
-        { type: "statement ending", location: rangeLocation(18, 19) },
-        { type: "expression", id: "body", location: rangeLocation(20, 26) },
-      ],
-      groupParsers,
-    ),
-    {
-      consumed: 6,
-      ast: {
-        type: "let",
-        declaration: {
-          type: "declaration",
-          name: { type: "name", name: "Foo", location: rangeLocation(5, 8) },
-          bind: {
-            type: "expression",
-            id: "bind",
-            location: rangeLocation(11, 17),
-          },
-          location: rangeLocation(5, 19),
-        },
-        body: {
-          type: "expression",
-          id: "body",
-          location: rangeLocation(20, 26),
-        },
-        location: rangeLocation(0, 26),
+  t.deepEqual(parsers.parseConstruction(tokens, groupParsers), {
+    consumed: 3,
+    ast: {
+      type: "let",
+      declaration: {
+        type: "declaration",
+        name: "Foo",
+        bind: "bind",
+        location: rangeLocation(5, 19),
       },
+      body: {
+        type: "expression",
+        id: "body",
+        location: rangeLocation(20, 26),
+      },
+      location: rangeLocation(0, 26),
     },
-  )
+  })
 })
 
 test("ignores expressions not starting with let", t => {
@@ -55,10 +54,11 @@ test("ignores expressions not starting with let", t => {
     parsers.parseConstruction(
       [
         { type: "word", word: "foo" },
-        { type: "name", name: "Foo" },
-        { type: "declarator" },
-        { type: "expression", id: "bind" },
-        { type: "statement ending" },
+        {
+          type: "declaration",
+          name: "Foo",
+          bind: { type: "expression", id: "bind" },
+        },
         { type: "expression", id: "body" },
       ],
       groupParsers,
@@ -69,16 +69,6 @@ test("ignores expressions not starting with let", t => {
     },
   )
 })
-
-const tokens = [
-  { type: "word", word: "let", location: rangeLocation(0, 4) },
-  { type: "name", name: "Foo", location: rangeLocation(5, 8) },
-  { type: "declarator", location: rangeLocation(9, 10) },
-  { type: "expression", id: "bind", location: rangeLocation(11, 17) },
-  { type: "statement ending", location: rangeLocation(18, 19) },
-  { type: "expression", id: "body", location: rangeLocation(20, 26) },
-  { type: "other", location: rangeLocation(29, 30) },
-]
 
 const testMissingToken = (
   t: ExecutionContext,
@@ -112,17 +102,17 @@ const testEOF = (
 }
 
 test(
-  "errors when name is missing",
+  "errors when declaration is missing",
   testMissingToken,
   1,
   locatedError(
-    "Expected declaration, but got 'declarator'",
-    rangeLocation(9, 10),
+    "Expected declaration, but got 'expression'",
+    rangeLocation(20, 26),
   ),
 )
 
 test(
-  "errors when there is EOF instead of name",
+  "errors when there is EOF instead of declaration",
   testEOF,
   1,
   locatedError(
@@ -132,76 +122,16 @@ test(
 )
 
 test(
-  "errors when declarator is missing",
-  testMissingToken,
-  2,
-  locatedError(
-    "Expected declarator, but got 'expression'",
-    rangeLocation(11, 17),
-  ),
-)
-
-test(
-  "errors when there is EOF instead of declarator",
-  testEOF,
-  2,
-  locatedError(
-    "Expected declarator, but got eof instead!",
-    rangeLocation(5, 8),
-  ),
-)
-
-test(
-  "errors when bind is missing",
-  testMissingToken,
-  3,
-  locatedError(
-    "Expected expression, but got 'statement ending'",
-    rangeLocation(18, 19),
-  ),
-)
-
-test(
-  "errors when there is EOF instead of bind",
-  testEOF,
-  3,
-  locatedError(
-    "Expected expression, but got eof instead!",
-    rangeLocation(5, 10),
-  ),
-)
-
-test(
-  "errors when statement ending is missing",
-  testMissingToken,
-  4,
-  locatedError(
-    "Expected statement ending, but got 'expression'",
-    rangeLocation(20, 26),
-  ),
-)
-
-test(
-  "errors when there is EOF instead of statement ending",
-  testEOF,
-  4,
-  locatedError(
-    "Expected statement ending, but got eof instead!",
-    rangeLocation(5, 17),
-  ),
-)
-
-test(
   "errors when body is missing",
   testMissingToken,
-  5,
+  2,
   locatedError("Expected expression, but got 'other'", rangeLocation(29, 30)),
 )
 
 test(
   "errors when there is EOF instead of body",
   testEOF,
-  5,
+  2,
   locatedError(
     "Expected expression, but got eof instead!",
     rangeLocation(0, 19),

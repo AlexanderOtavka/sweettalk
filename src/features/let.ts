@@ -9,7 +9,6 @@ import match, { ANY } from "../lib/match"
 import { something, nothing } from "../lib/maybe"
 import { error, forOkResult } from "../lib/result"
 import { startEndFromLocation } from "../lib/compile"
-import parseDeclaration from "../lib/parseDeclaration"
 import { expectConsumption } from "../lib/parse"
 
 export const parsers = {
@@ -29,7 +28,7 @@ export const parsers = {
     } = expectConsumption(
       tokens,
       1,
-      parseDeclaration(tokens.slice(1), parsers),
+      parsers.parseDeclaration(tokens.slice(1), parsers),
       "declaration",
     )
     if (declarationConsumed === 0) {
