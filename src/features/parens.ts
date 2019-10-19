@@ -67,36 +67,40 @@ const parseList = (
   }
 }
 
-export const parseValue = (tokens: readonly any[], parsers: any) => {
-  if (tokens.length === 0 || tokens[0].type !== "left paren") {
-    return { consumed: 0, errors: [] }
-  }
+export const parsers = {
+  parseValue: (tokens: readonly any[], parsers: any) => {
+    if (tokens.length === 0 || tokens[0].type !== "left paren") {
+      return { consumed: 0, errors: [] }
+    }
 
-  const { consumed, ast, errors } = parseList(
-    tokens.slice(1),
-    "comma",
-    "right paren",
-    parsers,
-  )
-  if (consumed === 0) {
-    return { consumed: 0, errors }
-  }
+    const { consumed, ast, errors } = parseList(
+      tokens.slice(1),
+      "comma",
+      "right paren",
+      parsers,
+    )
+    if (consumed === 0) {
+      return { consumed: 0, errors }
+    }
 
-  const lastTokenInside = tokens[consumed - 1]
-  const hasTrailingComma = lastTokenInside.type === "comma"
-  return {
-    consumed: consumed + 1,
-    ast: {
-      type: "parens",
-      values: ast,
-      hasTrailingComma,
-      trailingCommaLocation: hasTrailingComma ? lastTokenInside.location : null,
-      location: rangeLocationFromLocations(
-        tokens[0].location,
-        tokens[consumed].location,
-      ),
-    },
-  }
+    const lastTokenInside = tokens[consumed - 1]
+    const hasTrailingComma = lastTokenInside.type === "comma"
+    return {
+      consumed: consumed + 1,
+      ast: {
+        type: "parens",
+        values: ast,
+        hasTrailingComma,
+        trailingCommaLocation: hasTrailingComma
+          ? lastTokenInside.location
+          : null,
+        location: rangeLocationFromLocations(
+          tokens[0].location,
+          tokens[consumed].location,
+        ),
+      },
+    }
+  },
 }
 
 export const compileToJs = (

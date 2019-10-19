@@ -1,10 +1,10 @@
 import test from "ava"
-import { parseWords } from "./functionCalls"
+import { parsers } from "./functionCalls"
 import { rangeLocation } from "../lib/location"
 
 test("can parse 1 word", t => {
   t.deepEqual(
-    parseWords(
+    parsers.parseWords(
       [{ type: "word", word: "foo", location: rangeLocation(0, 4) }],
       {},
     ),
@@ -26,7 +26,7 @@ test("can parse 1 word", t => {
 
 test("can parse 2 words", t => {
   t.deepEqual(
-    parseWords(
+    parsers.parseWords(
       [
         { type: "word", word: "foo", location: rangeLocation(0, 4) },
         { type: "word", word: "bar", location: rangeLocation(5, 9) },
@@ -51,7 +51,7 @@ test("can parse 2 words", t => {
 
 test("can parse a name and a word", t => {
   t.deepEqual(
-    parseWords(
+    parsers.parseWords(
       [
         { type: "name", name: "Foo", location: rangeLocation(0, 4) },
         { type: "word", word: "bar", location: rangeLocation(5, 9) },
@@ -76,7 +76,7 @@ test("can parse a name and a word", t => {
 
 test("can parse 1 word with big expression", t => {
   t.deepEqual(
-    parseWords(
+    parsers.parseWords(
       [
         { type: "word", word: "foo", location: rangeLocation(0, 4) },
         { type: "left paren", location: rangeLocation(5, 6) },

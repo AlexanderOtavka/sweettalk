@@ -105,45 +105,47 @@ const parsePastLeftHandSide = (
   }
 }
 
-export const parseOperation = (
-  tokens: readonly any[],
-  parsers: any,
-  precedenceMatcherGroups: readonly any[][],
-) => {
-  const {
-    consumed: leftHandConsumed,
-    ast: leftHandSide,
-    errors: leftHandErrors,
-  } = parsers.parseConstruction(tokens)
-  if (leftHandConsumed === 0) {
-    return { consumed: 0, errors: leftHandErrors }
-  }
+export const parsers = {
+  parseOperation: (
+    tokens: readonly any[],
+    parsers: any,
+    precedenceMatcherGroups: readonly any[][],
+  ) => {
+    const {
+      consumed: leftHandConsumed,
+      ast: leftHandSide,
+      errors: leftHandErrors,
+    } = parsers.parseConstruction(tokens)
+    if (leftHandConsumed === 0) {
+      return { consumed: 0, errors: leftHandErrors }
+    }
 
-  const {
-    consumed: consumedPastLeftHand,
-    ast,
-    errors: errorsPastLeftHand,
-  } = parsePastLeftHandSide(
-    leftHandSide,
-    tokens.slice(leftHandConsumed),
-    precedenceMatcherGroups.map(matcherGroup => (token: any) =>
-      firstSomething(matcherGroup, matcher => matcher(token)),
-    ),
-    parsers.parseConstruction,
-  )
-  if (consumedPastLeftHand === 0) {
-    if (errorsPastLeftHand.length > 0) {
-      return { consumed: 0, errors: errorsPastLeftHand }
-    } else {
-      return {
-        consumed: leftHandConsumed,
-        ast: leftHandSide,
+    const {
+      consumed: consumedPastLeftHand,
+      ast,
+      errors: errorsPastLeftHand,
+    } = parsePastLeftHandSide(
+      leftHandSide,
+      tokens.slice(leftHandConsumed),
+      precedenceMatcherGroups.map(matcherGroup => (token: any) =>
+        firstSomething(matcherGroup, matcher => matcher(token)),
+      ),
+      parsers.parseConstruction,
+    )
+    if (consumedPastLeftHand === 0) {
+      if (errorsPastLeftHand.length > 0) {
+        return { consumed: 0, errors: errorsPastLeftHand }
+      } else {
+        return {
+          consumed: leftHandConsumed,
+          ast: leftHandSide,
+        }
       }
     }
-  }
 
-  return {
-    consumed: leftHandConsumed + consumedPastLeftHand,
-    ast,
-  }
+    return {
+      consumed: leftHandConsumed + consumedPastLeftHand,
+      ast,
+    }
+  },
 }

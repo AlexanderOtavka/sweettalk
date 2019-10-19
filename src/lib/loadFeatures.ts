@@ -1,4 +1,5 @@
 import * as path from "path"
+import listOfObjectsToObjectOfLists from "./listOfObjectsToObjectOfLists"
 
 const loadFeatures = (
   featuresDir: string,
@@ -17,20 +18,7 @@ const loadFeatures = (
     .map(baseName => path.resolve(featuresDir, baseName))
     .map(pathName => require(pathName))
 
-  const apis = [
-    ...new Set(
-      features
-        .map(Object.keys)
-        .reduce((apis, featureApi) => [...apis, ...featureApi]),
-    ),
-  ]
-
-  return Object.assign(
-    {},
-    ...apis.map(api => ({
-      [api]: features.map(feature => feature[api]).filter(Boolean),
-    })),
-  )
+  return listOfObjectsToObjectOfLists(features)
 }
 
 export default loadFeatures

@@ -4,7 +4,12 @@ import { generate } from "astring"
 import loadFeatures from "./lib/loadFeatures"
 import { lexFileWithLexers } from "./lib/lex"
 import { preParse } from "./lib/preParse"
-import { parseProgramWithFeatures, injectParserDependency } from "./lib/parse"
+import {
+  parseProgramWithFeatures,
+  injectParserDependency,
+  createParserGroups,
+  chainParsers,
+} from "./lib/parse"
 import { compileAstToJs } from "./lib/compile"
 import { ok, forOkResult } from "./lib/result"
 import pipe from "./lib/pipe"
@@ -28,20 +33,21 @@ const compileString = (fileString: string) => {
       forOkResult(that, preParsedTokens => {
         return parseProgramWithFeatures(
           preParsedTokens,
-          pipe(features).through(that =>
-            injectParserDependency(that, "parseOperation", [
-              features.translateTermOperator,
-              features.translateFactorOperator,
-            ]),
+          pipe(createParserGroups(features.parsers)).through(
+            that =>
+              injectParserDependency(that, "parseOperation", [
+                features.translateTermOperator,
+                features.translateFactorOperator,
+              ]),
+            that =>
+              chainParsers(that, [
+                "parseExpression",
+                "parseOperation",
+                "parseConstruction",
+                "parseWords",
+                "parseValue",
+              ]),
           ),
-          ["parseProgram", "parseStatement"],
-          [
-            "parseExpression",
-            "parseOperation",
-            "parseConstruction",
-            "parseWords",
-            "parseValue",
-          ],
         )
       }),
     that =>

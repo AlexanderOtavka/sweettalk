@@ -6,43 +6,45 @@ import { something, nothing } from "../lib/maybe"
 import { ok, forOkResult } from "../lib/result"
 import { startEndFromLocation } from "../lib/compile"
 
-export const parseStatement = (tokens: readonly any[], parsers: any) => {
-  if (
-    tokens.length === 0 ||
-    tokens[0].type !== "word" ||
-    (tokens[0].word !== "define" && tokens[0].word !== "share")
-  ) {
-    return { consumed: 0, errors: [] }
-  }
+export const parsers = {
+  parseStatement: (tokens: readonly any[], parsers: any) => {
+    if (
+      tokens.length === 0 ||
+      tokens[0].type !== "word" ||
+      (tokens[0].word !== "define" && tokens[0].word !== "share")
+    ) {
+      return { consumed: 0, errors: [] }
+    }
 
-  const isExported = tokens[0].word === "share"
+    const isExported = tokens[0].word === "share"
 
-  const {
-    consumed: declarationConsumed,
-    ast: declaration,
-    errors: declarationErrors,
-  } = expectConsumption(
-    tokens,
-    1,
-    parseDeclaration(tokens.slice(1), parsers),
-    "declaration",
-  )
-  if (declarationConsumed === 0) {
-    return { consumed: 0, errors: declarationErrors }
-  }
+    const {
+      consumed: declarationConsumed,
+      ast: declaration,
+      errors: declarationErrors,
+    } = expectConsumption(
+      tokens,
+      1,
+      parseDeclaration(tokens.slice(1), parsers),
+      "declaration",
+    )
+    if (declarationConsumed === 0) {
+      return { consumed: 0, errors: declarationErrors }
+    }
 
-  return {
-    consumed: 1 + declarationConsumed,
-    ast: {
-      type: "define",
-      isExported,
-      declaration,
-      location: rangeLocationFromLocations(
-        tokens[0].location,
-        declaration.location,
-      ),
-    },
-  }
+    return {
+      consumed: 1 + declarationConsumed,
+      ast: {
+        type: "define",
+        isExported,
+        declaration,
+        location: rangeLocationFromLocations(
+          tokens[0].location,
+          declaration.location,
+        ),
+      },
+    }
+  },
 }
 
 export const compileToJs = (

@@ -1,6 +1,7 @@
 import { ok, error } from "./result"
 import { locatedError } from "./error"
 import { rangeLocationFromLocations } from "./location"
+import listOfObjectsToObjectOfLists from "./listOfObjectsToObjectOfLists"
 
 export const expectAnyToken = (
   tokens: readonly any[],
@@ -90,6 +91,8 @@ const parseWithParsers = (
   return { consumed: 0, errors: [] }
 }
 
+export const createParserGroups = listOfObjectsToObjectOfLists
+
 export const injectParserDependency = (
   parserGroups: any,
   parserName: string,
@@ -103,55 +106,41 @@ export const injectParserDependency = (
   ),
 })
 
-const createParsers = (
+export const chainParsers = (
   groupMapObject: any,
   precedence: readonly string[],
-  mixinParsers: any = {},
 ) => {
-  const parsers = {
-    ...mixinParsers,
-    ...precedence
-      .map(name => [name, groupMapObject[name] || []])
-      .reduce(
-        (groups, [name, parserList], i) => {
-          // Add parser at the end of the parser list to allow descent into higher
-          // precedence terms
-          const parsersWithDescent =
-            i < precedence.length - 1
-              ? [
-                  ...parserList,
-                  Object.assign(
-                    (tokens: readonly any[], groupParsers: any) =>
-                      groupParsers[precedence[i + 1]](tokens),
-                    { debugName: `higherThan(${name})` },
-                  ),
-                ]
-              : parserList
-          groups[name] = (tokens: readonly any[]) =>
-            parseWithParsers(tokens, parsersWithDescent, parsers)
-          return groups
-        },
-        {} as any,
-      ),
+  const result = { ...groupMapObject }
+  for (let i = 0; i < precedence.length; i++) {
+    if (i < precedence.length - 1) {
+      const name = precedence[i]
+      result[name] = [
+        ...(groupMapObject[name] || []),
+        Object.assign(
+          (tokens: readonly any[], groupParsers: any) =>
+            groupParsers[precedence[i + 1]](tokens),
+          { debugName: `higherThan(${name})` },
+        ),
+      ]
+    }
   }
-  return parsers
+
+  return result
 }
 
 export const parseProgramWithFeatures = (
   tokens: readonly any[],
-  groupMapObject: any,
-  programPrecedence: readonly string[],
-  expressionPrecedence: readonly string[],
+  parserGroups: any,
 ) => {
-  const expressionParsers = createParsers(groupMapObject, expressionPrecedence)
-  const programParsers = createParsers(
-    groupMapObject,
-    programPrecedence,
-    expressionParsers,
+  const parsers = Object.assign(
+    {},
+    ...Object.keys(parserGroups).map(name => ({
+      [name]: (tokens: readonly any[]) =>
+        parseWithParsers(tokens, parserGroups[name], parsers),
+    })),
   )
 
-  const parseProgramStatement = programParsers[programPrecedence[0]]
-  const { consumed, ast, errors } = parseProgramStatement(tokens)
+  const { consumed, ast, errors } = parsers.parseProgram(tokens)
   if (consumed === 0 && errors.length > 0) {
     return error(errors)
   } else {

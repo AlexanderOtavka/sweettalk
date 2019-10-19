@@ -1,8 +1,8 @@
 import test from "ava"
-import { parseValue } from "./parens"
+import { parsers } from "./parens"
 import { rangeLocation } from "../lib/location"
 
-const parsers = {
+const parserGroups = {
   parseExpression: ([token]) =>
     token.type === "expression"
       ? { consumed: 1, ast: token }
@@ -11,12 +11,12 @@ const parsers = {
 
 test("parses empty parens", t => {
   t.deepEqual(
-    parseValue(
+    parsers.parseValue(
       [
         { type: "left paren", location: rangeLocation(0, 1) },
         { type: "right paren", location: rangeLocation(1, 2) },
       ],
-      parsers,
+      parserGroups,
     ),
     {
       consumed: 2,
@@ -33,13 +33,13 @@ test("parses empty parens", t => {
 
 test("parses parens with 1 expression", t => {
   t.deepEqual(
-    parseValue(
+    parsers.parseValue(
       [
         { type: "left paren", location: rangeLocation(0, 1) },
         { type: "expression", location: rangeLocation(1, 5) },
         { type: "right paren", location: rangeLocation(5, 6) },
       ],
-      parsers,
+      parserGroups,
     ),
     {
       consumed: 3,
@@ -56,14 +56,14 @@ test("parses parens with 1 expression", t => {
 
 test("parses parens with 1 expression and trailing comma", t => {
   t.deepEqual(
-    parseValue(
+    parsers.parseValue(
       [
         { type: "left paren", location: rangeLocation(0, 1) },
         { type: "expression", location: rangeLocation(1, 5) },
         { type: "comma", location: rangeLocation(5, 6) },
         { type: "right paren", location: rangeLocation(6, 7) },
       ],
-      parsers,
+      parserGroups,
     ),
     {
       consumed: 4,
@@ -80,7 +80,7 @@ test("parses parens with 1 expression and trailing comma", t => {
 
 test("parses parens with 3 expressions", t => {
   t.deepEqual(
-    parseValue(
+    parsers.parseValue(
       [
         { type: "left paren", location: rangeLocation(0, 1) },
         { type: "expression", location: rangeLocation(1, 5) },
@@ -90,7 +90,7 @@ test("parses parens with 3 expressions", t => {
         { type: "expression", location: rangeLocation(14, 20) },
         { type: "right paren", location: rangeLocation(20, 21) },
       ],
-      parsers,
+      parserGroups,
     ),
     {
       consumed: 7,

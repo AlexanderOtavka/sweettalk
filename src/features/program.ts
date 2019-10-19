@@ -2,47 +2,51 @@ import { locatedError } from "../lib/error"
 import { rangeLocationFromLocations } from "../lib/location"
 import match, { ANY } from "../lib/match"
 import { something, nothing } from "../lib/maybe"
-import { forOkResult, isOk, ok } from "../lib/result"
+import { isOk, ok } from "../lib/result"
 import { startEndFromLocation } from "../lib/compile"
 
-export const parseProgram = (tokens: readonly any[], parsers: any) => {
-  const body = []
-  let consumed = 0
-  while (consumed < tokens.length) {
-    const { consumed: statementConsumed, ast, errors } = parsers.parseStatement(
-      tokens.slice(consumed),
-    )
-    if (statementConsumed === 0) {
-      if (errors.length > 0) {
-        return { consumed: 0, errors }
-      } else {
-        return {
-          consumed: 0,
-          errors: [
-            locatedError(
-              `Unexpected ${tokens[consumed].type}`,
-              tokens[consumed].location,
-            ),
-          ],
+export const parsers = {
+  parseProgram: (tokens: readonly any[], parsers: any) => {
+    const body = []
+    let consumed = 0
+    while (consumed < tokens.length) {
+      const {
+        consumed: statementConsumed,
+        ast,
+        errors,
+      } = parsers.parseStatement(tokens.slice(consumed))
+      if (statementConsumed === 0) {
+        if (errors.length > 0) {
+          return { consumed: 0, errors }
+        } else {
+          return {
+            consumed: 0,
+            errors: [
+              locatedError(
+                `Unexpected ${tokens[consumed].type}`,
+                tokens[consumed].location,
+              ),
+            ],
+          }
         }
       }
+
+      body.push(ast)
+      consumed += statementConsumed
     }
 
-    body.push(ast)
-    consumed += statementConsumed
-  }
-
-  return {
-    consumed,
-    ast: {
-      type: "program",
-      body,
-      location: rangeLocationFromLocations(
-        tokens[0].location,
-        tokens[tokens.length - 1].location,
-      ),
-    },
-  }
+    return {
+      consumed,
+      ast: {
+        type: "program",
+        body,
+        location: rangeLocationFromLocations(
+          tokens[0].location,
+          tokens[tokens.length - 1].location,
+        ),
+      },
+    }
+  },
 }
 
 export const compileToJs = (

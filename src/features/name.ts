@@ -20,8 +20,10 @@ export const lex = (subFile: string) => {
   }
 }
 
-export const parseValue = (tokens: readonly any[], _parsers: any) =>
-  passThroughTypeMatches(tokens, ["name"])
+export const parsers = {
+  parseValue: (tokens: readonly any[], _parsers: any) =>
+    passThroughTypeMatches(tokens, ["name"]),
+}
 
 export const compileToJs = (
   ast: any,

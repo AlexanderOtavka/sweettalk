@@ -1,5 +1,5 @@
 import test from "ava"
-import { parseOperation } from "./binaryInfixExpression"
+import { parsers } from "./binaryInfixExpression"
 import { something, nothing } from "../lib/maybe"
 import { locatedError } from "../lib/error"
 import { rangeLocation } from "../lib/location"
@@ -40,7 +40,7 @@ const precedenceMatcherGroups = [
 
 test("can parse 1 + 1", t => {
   t.deepEqual(
-    parseOperation(
+    parsers.parseOperation(
       [
         { type: "1", location: rangeLocation(0, 1) },
         { type: "+", location: rangeLocation(2, 3) },
@@ -64,7 +64,7 @@ test("can parse 1 + 1", t => {
 
 test("can parse 1 + 2 - 3", t => {
   t.deepEqual(
-    parseOperation(
+    parsers.parseOperation(
       [
         { type: "1", location: rangeLocation(0, 1) },
         { type: "+", location: rangeLocation(2, 3) },
@@ -96,7 +96,7 @@ test("can parse 1 + 2 - 3", t => {
 
 test("can parse 1 + 2 * 3", t => {
   t.deepEqual(
-    parseOperation(
+    parsers.parseOperation(
       [
         { type: "1", location: rangeLocation(0, 1) },
         { type: "+", location: rangeLocation(2, 3) },
@@ -128,7 +128,7 @@ test("can parse 1 + 2 * 3", t => {
 
 test("errors on end of input", t => {
   t.deepEqual(
-    parseOperation(
+    parsers.parseOperation(
       [{ type: "1" }, { type: "+", location: rangeLocation(2, 3) }],
       groupParsers,
       precedenceMatcherGroups,
