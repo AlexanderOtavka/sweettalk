@@ -35,9 +35,6 @@ export const parseConstruction = (tokens: readonly any[], parsers: any) => {
     return { consumed: 0, errors: declarationErrors }
   }
 
-  // TODO: just put the declaration straight into the AST
-  const { name, bind } = declaration
-
   const {
     consumed: bodyConsumed,
     ast: body,
@@ -56,8 +53,7 @@ export const parseConstruction = (tokens: readonly any[], parsers: any) => {
     consumed: 1 + declarationConsumed + bodyConsumed,
     ast: {
       type: "let",
-      name,
-      bind,
+      declaration,
       body,
       location: rangeLocationFromLocations(tokens[0].location, body.location),
     },
@@ -73,7 +69,15 @@ export const compileToJs = (
   match(ast, [
     [
       { type: "let" },
-      ({ name: { name, location: nameLocation }, bind, body, location }) => {
+      ({
+        declaration: {
+          name: { name, location: nameLocation },
+          bind,
+          location: declarationLocation,
+        },
+        body,
+        location,
+      }) => {
         if (Object.prototype.hasOwnProperty.call(environment, name)) {
           return something(
             error([
@@ -102,9 +106,7 @@ export const compileToJs = (
                     ...startEndFromLocation(nameLocation),
                   },
                   init: bindJsAst,
-                  ...startEndFromLocation(
-                    rangeLocationFromLocations(nameLocation, bind.location),
-                  ),
+                  ...startEndFromLocation(declarationLocation),
                 },
               ],
               ...startEndFromLocation(

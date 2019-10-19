@@ -29,11 +29,15 @@ test("can parse a let expression", t => {
       consumed: 6,
       ast: {
         type: "let",
-        name: { type: "name", name: "Foo", location: rangeLocation(5, 8) },
-        bind: {
-          type: "expression",
-          id: "bind",
-          location: rangeLocation(11, 17),
+        declaration: {
+          type: "declaration",
+          name: { type: "name", name: "Foo", location: rangeLocation(5, 8) },
+          bind: {
+            type: "expression",
+            id: "bind",
+            location: rangeLocation(11, 17),
+          },
+          location: rangeLocation(5, 19),
         },
         body: {
           type: "expression",
@@ -209,11 +213,15 @@ test("errors when a let shadows a variable", t => {
     compileToJs(
       {
         type: "let",
-        name: { type: "name", name: "Foo", location: rangeLocation(5, 8) },
-        bind: {
-          type: "expression",
-          id: "bind",
-          location: rangeLocation(11, 17),
+        declaration: {
+          type: "declaration",
+          name: { type: "name", name: "Foo", location: rangeLocation(5, 8) },
+          bind: {
+            type: "expression",
+            id: "bind",
+            location: rangeLocation(11, 17),
+          },
+          location: rangeLocation(5, 19),
         },
         body: {
           type: "expression",
