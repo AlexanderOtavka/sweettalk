@@ -73,32 +73,23 @@ export const parsers = {
   },
 }
 
-export const compileToJs = (
-  ast: any,
-  environment: any,
-  block: any[],
-  compile: (ast: any, environment: any, block: any[]) => any,
-) =>
-  match(ast, [
-    [
-      { type: "function call" },
-      ({ callee, args, location }) =>
-        something(
-          forOkResult(compile(callee, environment, block), calleeJsAst =>
-            forOkResult(
-              allOkResults(
-                args.map((arg: any) => compile(arg, environment, block)),
-              ),
-              argsInJs =>
-                ok({
-                  type: "CallExpression",
-                  callee: calleeJsAst,
-                  arguments: argsInJs,
-                  ...startEndFromLocation(location),
-                }),
-            ),
-          ),
-        ),
-    ],
-    [ANY, _ => nothing],
-  ])
+export const compilers = {
+  "function call": (
+    { callee, args, location }: any,
+    environment: any,
+    block: any[],
+    compile: (ast: any, environment: any, block: any[]) => any,
+  ) =>
+    forOkResult(compile(callee, environment, block), calleeJsAst =>
+      forOkResult(
+        allOkResults(args.map((arg: any) => compile(arg, environment, block))),
+        argsInJs =>
+          ok({
+            type: "CallExpression",
+            callee: calleeJsAst,
+            arguments: argsInJs,
+            ...startEndFromLocation(location),
+          }),
+      ),
+    ),
+}

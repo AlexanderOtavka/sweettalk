@@ -61,66 +61,57 @@ export const parsers = {
   },
 }
 
-export const compileToJs = (
-  ast: any,
-  environment: any,
-  block: any[],
-  compile: (ast: any, environment: any, block: any[]) => any,
-) =>
-  match(ast, [
-    [
-      { type: "let" },
-      ({
-        declaration: {
-          name: { name, location: nameLocation },
-          bind,
-          location: declarationLocation,
-        },
-        body,
-        location,
-      }) => {
-        if (Object.prototype.hasOwnProperty.call(environment, name)) {
-          return something(
-            error([
-              locatedError(
-                `There is already a variable named '${name}'`,
-                nameLocation,
-              ),
-            ]),
-          )
-        }
-
-        const jsName = `${name}__${block.length}`
-        const newEnvironment = { ...environment, [name]: jsName }
-
-        return something(
-          forOkResult(compile(bind, newEnvironment, block), bindJsAst => {
-            block.push({
-              type: "VariableDeclaration",
-              kind: "const",
-              declarations: [
-                {
-                  type: "VariableDeclarator",
-                  id: {
-                    type: "Identifier",
-                    name: jsName,
-                    ...startEndFromLocation(nameLocation),
-                  },
-                  init: bindJsAst,
-                  ...startEndFromLocation(declarationLocation),
-                },
-              ],
-              ...startEndFromLocation(
-                rangeLocation(
-                  locationLeftBound(location),
-                  locationRightBound(bind.location),
-                ),
-              ),
-            })
-            return compile(body, newEnvironment, block)
-          }),
-        )
+export const compilers = {
+  let: (
+    {
+      declaration: {
+        name: { name, location: nameLocation },
+        bind,
+        location: declarationLocation,
       },
-    ],
-    [ANY, _ => nothing],
-  ])
+      body,
+      location,
+    }: any,
+    environment: any,
+    block: any[],
+    compile: (ast: any, environment: any, block: any[]) => any,
+  ) => {
+    if (Object.prototype.hasOwnProperty.call(environment, name)) {
+      return error([
+        locatedError(
+          `There is already a variable named '${name}'`,
+          nameLocation,
+        ),
+      ])
+    }
+
+    const jsName = `${name}__${block.length}`
+    const newEnvironment = { ...environment, [name]: jsName }
+
+    return forOkResult(compile(bind, newEnvironment, block), bindJsAst => {
+      block.push({
+        type: "VariableDeclaration",
+        kind: "const",
+        declarations: [
+          {
+            type: "VariableDeclarator",
+            id: {
+              type: "Identifier",
+              name: jsName,
+              ...startEndFromLocation(nameLocation),
+            },
+            init: bindJsAst,
+            ...startEndFromLocation(declarationLocation),
+          },
+        ],
+        ...startEndFromLocation(
+          rangeLocation(
+            locationLeftBound(location),
+            locationRightBound(bind.location),
+          ),
+        ),
+      })
+      return compile(body, newEnvironment, block)
+    })
+  },
+}

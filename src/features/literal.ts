@@ -9,19 +9,11 @@ export const parsers = {
     passThroughTypeMatches(tokens, ["literal"]),
 }
 
-export const compileToJs = (
-  ast: any,
-  _environment: any,
-  _block: any[],
-  _compile: (ast: any, environment: any, block: any[]) => any,
-) =>
-  match(ast, [
-    [
-      { type: "literal" },
-      ({ value, location }) =>
-        something(
-          ok({ type: "Literal", value, ...startEndFromLocation(location) }),
-        ),
-    ],
-    [ANY, _ => nothing],
-  ])
+export const compilers = {
+  literal: (
+    { value, location }: any,
+    _environment: any,
+    _block: any[],
+    _compile: (ast: any, environment: any, block: any[]) => any,
+  ) => ok({ type: "Literal", value, ...startEndFromLocation(location) }),
+}

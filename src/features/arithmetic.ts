@@ -29,34 +29,27 @@ export const translateFactorOperator = (token: any) =>
     [ANY, _ => nothing],
   ])
 
-export const compileToJs = (
-  ast: any,
-  environment: any,
-  block: any[],
-  compile: (ast: any, environment: any, block: any[]) => any,
-) =>
-  match(ast, [
-    [
-      { type: "binary arithmetic operator" },
-      ({ operator, leftHandSide, rightHandSide, location }) =>
-        something(
-          forOkResult(compile(leftHandSide, environment, block), left =>
-            forOkResult(compile(rightHandSide, environment, block), right =>
-              ok({
-                type: "BinaryExpression",
-                operator: match(operator, [
-                  ["add", _ => "+"],
-                  ["subtract", _ => "-"],
-                  ["multiply", _ => "*"],
-                  ["divide", _ => "/"],
-                ]),
-                left,
-                right,
-                ...startEndFromLocation(location),
-              }),
-            ),
-          ),
-        ),
-    ],
-    [ANY, _ => nothing],
-  ])
+export const compilers = {
+  "binary arithmetic operator": (
+    { operator, leftHandSide, rightHandSide, location },
+    environment: any,
+    block: any[],
+    compile: (ast: any, environment: any, block: any[]) => any,
+  ) =>
+    forOkResult(compile(leftHandSide, environment, block), left =>
+      forOkResult(compile(rightHandSide, environment, block), right =>
+        ok({
+          type: "BinaryExpression",
+          operator: match(operator, [
+            ["add", _ => "+"],
+            ["subtract", _ => "-"],
+            ["multiply", _ => "*"],
+            ["divide", _ => "/"],
+          ]),
+          left,
+          right,
+          ...startEndFromLocation(location),
+        }),
+      ),
+    ),
+}

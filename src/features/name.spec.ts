@@ -1,5 +1,5 @@
 import test from "ava"
-import { lex, compileToJs } from "./name"
+import { lex, compilers } from "./name"
 import { something } from "../lib/maybe"
 import { error } from "../lib/result"
 import { locatedError } from "../lib/error"
@@ -38,14 +38,12 @@ test("won't lex invalid names", t => {
 
 test("errors when a name isn't in the environment", t => {
   t.deepEqual(
-    compileToJs(
+    compilers.name(
       { type: "name", name: "Foo", location: rangeLocation(0, 4) },
       {},
       [],
       x => x,
     ),
-    something(
-      error(locatedError("No variable named 'Foo'", rangeLocation(0, 4))),
-    ),
+    error(locatedError("No variable named 'Foo'", rangeLocation(0, 4))),
   )
 })

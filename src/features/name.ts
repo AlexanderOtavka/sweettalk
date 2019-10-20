@@ -25,25 +25,18 @@ export const parsers = {
     passThroughTypeMatches(tokens, ["name"]),
 }
 
-export const compileToJs = (
-  ast: any,
-  environment: any,
-  _block: any[],
-  _compile: (ast: any, environment: any, block: any[]) => any,
-) =>
-  match(ast, [
-    [
-      { type: "name" },
-      ({ name, location }) =>
-        something(
-          Object.prototype.hasOwnProperty.call(environment, name)
-            ? ok({
-                type: "Identifier",
-                name: environment[name],
-                ...startEndFromLocation(location),
-              })
-            : error(locatedError(`No variable named '${name}'`, location)),
-        ),
-    ],
-    [ANY, _ => nothing],
-  ])
+export const compilers = {
+  name: (
+    { name, location }: any,
+    environment: any,
+    _block: any[],
+    _compile: (ast: any, environment: any, block: any[]) => any,
+  ) =>
+    Object.prototype.hasOwnProperty.call(environment, name)
+      ? ok({
+          type: "Identifier",
+          name: environment[name],
+          ...startEndFromLocation(location),
+        })
+      : error(locatedError(`No variable named '${name}'`, location)),
+}

@@ -46,72 +46,65 @@ export const parsers = {
   },
 }
 
-export const compileToJs = (
-  ast: any,
-  environment: any,
-  block: any[],
-  compile: (ast: any, environment: any, block: any[]) => any,
-) =>
-  match(ast, [
-    [
-      { type: "define" },
-      ({
-        isExported,
-        declaration: {
-          name: { name, location: nameLocation },
-          bind,
-          location: declarationLocation,
-        },
-        location,
-      }) =>
-        something(
-          forOkResult(compile(bind, environment, block), (bindJsAst): any => {
-            const declaration = {
-              type: "VariableDeclaration",
-              kind: "const",
-              declarations: [
-                {
-                  type: "VariableDeclarator",
-                  id: {
-                    type: "Identifier",
-                    name: environment[name],
-                    ...startEndFromLocation(nameLocation),
-                  },
-                  init: bindJsAst,
-                  ...startEndFromLocation(declarationLocation),
-                },
-              ],
-              ...startEndFromLocation(location),
-            }
+export const compilers = {
+  define: (
+    {
+      isExported,
+      declaration: {
+        name: { name, location: nameLocation },
+        bind,
+        location: declarationLocation,
+      },
+      location,
+    },
+    environment: any,
+    block: any[],
+    compile: (ast: any, environment: any, block: any[]) => any,
+  ) =>
+    forOkResult(compile(bind, environment, block), (bindJsAst): any => {
+      const declaration = {
+        type: "VariableDeclaration",
+        kind: "const",
+        declarations: [
+          {
+            type: "VariableDeclarator",
+            id: {
+              type: "Identifier",
+              name: environment[name],
+              ...startEndFromLocation(nameLocation),
+            },
+            init: bindJsAst,
+            ...startEndFromLocation(declarationLocation),
+          },
+        ],
+        ...startEndFromLocation(location),
+      }
 
-            if (isExported) {
-              block.push(declaration)
+      if (isExported) {
+        block.push(declaration)
 
-              return ok({
-                type: "ExpressionStatement",
-                expression: {
-                  type: "AssignmentExpression",
-                  operator: "=",
-                  left: {
-                    type: "MemberExpression",
-                    computed: false,
-                    object: { type: "Identifier", name: "exports" },
-                    property: {
-                      type: "Identifier",
-                      name,
-                      ...startEndFromLocation(nameLocation),
-                    },
-                  },
-                  right: { type: "Identifier", name: environment[name] },
-                  ...startEndFromLocation(declarationLocation),
-                },
-                ...startEndFromLocation(location),
-              })
-            } else {
-              return ok(declaration)
-            }
-          }),
-        ),
-    ],
-    [ANY, _ => nothing],
-  ])
+        return ok({
+          type: "ExpressionStatement",
+          expression: {
+            type: "AssignmentExpression",
+            operator: "=",
+            left: {
+              type: "MemberExpression",
+              computed: false,
+              object: { type: "Identifier", name: "exports" },
+              property: {
+                type: "Identifier",
+                name,
+                ...startEndFromLocation(nameLocation),
+              },
+            },
+            right: { type: "Identifier", name: environment[name] },
+            ...startEndFromLocation(declarationLocation),
+          },
+          ...startEndFromLocation(location),
+        })
+      } else {
+        return ok(declaration)
+      }
+    }),
+}

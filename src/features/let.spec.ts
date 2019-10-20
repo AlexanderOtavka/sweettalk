@@ -1,5 +1,5 @@
 import test, { ExecutionContext } from "ava"
-import { parsers, compileToJs } from "./let"
+import { parsers, compilers } from "./let"
 import { locatedError } from "../lib/error"
 import { rangeLocation } from "../lib/location"
 import { something } from "../lib/maybe"
@@ -140,7 +140,7 @@ test(
 
 test("errors when a let shadows a variable", t => {
   t.deepEqual(
-    compileToJs(
+    compilers.let(
       {
         type: "let",
         declaration: {
@@ -164,13 +164,11 @@ test("errors when a let shadows a variable", t => {
       [],
       x => ok(x),
     ),
-    something(
-      error([
-        locatedError(
-          "There is already a variable named 'Foo'",
-          rangeLocation(5, 8),
-        ),
-      ]),
-    ),
+    error([
+      locatedError(
+        "There is already a variable named 'Foo'",
+        rangeLocation(5, 8),
+      ),
+    ]),
   )
 })

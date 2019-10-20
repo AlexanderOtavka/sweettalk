@@ -103,51 +103,44 @@ export const parsers = {
   },
 }
 
-export const compileToJs = (
-  ast: any,
-  environment: any,
-  block: any[],
-  compile: (ast: any, environment: any, block: any[]) => any,
-) =>
-  match(ast, [
-    [
-      { type: "parens" },
-      that =>
-        something(
-          match(that, [
-            [
-              { values: [ANY], hasTrailingComma: false },
-              ({ values: [value] }) => compile(value, environment, block),
-            ],
-            [
-              { values: [ANY], hasTrailingComma: true },
-              ({ trailingCommaLocation }) =>
-                error(locatedError("Unexpected comma", trailingCommaLocation)),
-            ],
-            [
-              { values: [] },
-              ({ location }) =>
-                error(
-                  locatedError(
-                    "Unexpected empty parens. Put something between them!",
-                    location,
-                  ),
-                ),
-            ],
-            [
-              ANY,
-              ({ values }) =>
-                error(
-                  locatedError(
-                    "Only one value expected in parens",
-                    rangeLocationFromLocations(
-                      ...values.slice(1).map(({ location }) => location),
-                    ),
-                  ),
-                ),
-            ],
-          ]),
-        ),
-    ],
-    [ANY, _ => nothing],
-  ])
+export const compilers = {
+  parens: (
+    ast: any,
+    environment: any,
+    block: any[],
+    compile: (ast: any, environment: any, block: any[]) => any,
+  ) =>
+    match(ast, [
+      [
+        { values: [ANY], hasTrailingComma: false },
+        ({ values: [value] }) => compile(value, environment, block),
+      ],
+      [
+        { values: [ANY], hasTrailingComma: true },
+        ({ trailingCommaLocation }) =>
+          error(locatedError("Unexpected comma", trailingCommaLocation)),
+      ],
+      [
+        { values: [] },
+        ({ location }) =>
+          error(
+            locatedError(
+              "Unexpected empty parens. Put something between them!",
+              location,
+            ),
+          ),
+      ],
+      [
+        ANY,
+        ({ values }) =>
+          error(
+            locatedError(
+              "Only one value expected in parens",
+              rangeLocationFromLocations(
+                ...values.slice(1).map(({ location }) => location),
+              ),
+            ),
+          ),
+      ],
+    ]),
+}

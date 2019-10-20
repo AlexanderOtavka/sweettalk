@@ -49,47 +49,39 @@ export const parsers = {
   },
 }
 
-export const compileToJs = (
-  ast: any,
-  environment: any,
-  _block: any[],
-  compile: (ast: any, environment: any, block: any[]) => any,
-) =>
-  match(ast, [
-    [
-      { type: "program" },
-      ({ body, location }: { body: any[]; location: any }) => {
-        const newEnvironment = body.reduce(
-          (newEnvironment, statement, i) => {
-            if (statement.type === "define") {
-              const { name } = statement.declaration.name
-              newEnvironment[name] = `${name}__${i}_defined`
-            }
-
-            return newEnvironment
-          },
-          { ...environment },
-        )
-
-        const compiledBody = []
-        for (const statement of body) {
-          const result = compile(statement, newEnvironment, compiledBody)
-          if (isOk(result)) {
-            compiledBody.push(result.value)
-          } else {
-            return something(result)
-          }
+export const compilers = {
+  program: (
+    { body, location }: { body: any[]; location: any },
+    environment: any,
+    compile: (ast: any, environment: any, block: any[]) => any,
+  ) => {
+    const newEnvironment = body.reduce(
+      (newEnvironment, statement, i) => {
+        if (statement.type === "define") {
+          const { name } = statement.declaration.name
+          newEnvironment[name] = `${name}__${i}_defined`
         }
 
-        return something(
-          ok({
-            type: "Program",
-            sourceType: "module",
-            body: compiledBody,
-            ...startEndFromLocation(location),
-          }),
-        )
+        return newEnvironment
       },
-    ],
-    [ANY, _ => nothing],
-  ])
+      { ...environment },
+    )
+
+    const compiledBody = []
+    for (const statement of body) {
+      const result = compile(statement, newEnvironment, compiledBody)
+      if (isOk(result)) {
+        compiledBody.push(result.value)
+      } else {
+        return result
+      }
+    }
+
+    return ok({
+      type: "Program",
+      sourceType: "module",
+      body: compiledBody,
+      ...startEndFromLocation(location),
+    })
+  },
+}

@@ -52,7 +52,7 @@ const compileString = (fileString: string) => {
       }),
     that =>
       forOkResult(that, ast => {
-        return compileAstToJs(ast, environment, features.compileToJs)
+        return compileAstToJs(ast, environment, features.compilers)
       }),
     that =>
       forOkResult(that, jsAst => {
