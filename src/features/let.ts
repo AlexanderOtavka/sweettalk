@@ -5,11 +5,10 @@ import {
   locationLeftBound,
   locationRightBound,
 } from "../lib/location"
-import match, { ANY } from "../lib/match"
-import { something, nothing } from "../lib/maybe"
 import { error, forOkResult } from "../lib/result"
 import { startEndFromLocation } from "../lib/compile"
 import { expectConsumption } from "../lib/parse"
+import { getLeakedNames } from "../lib/leakyNames"
 
 export const parsers = {
   parseConstruction: (tokens: readonly any[], parsers: any) => {
@@ -63,24 +62,18 @@ export const parsers = {
 
 export const compilers = {
   let: (
-    {
-      declaration: {
-        name: { name, location: nameLocation },
-        bind,
-        location: declarationLocation,
-      },
-      body,
-      location,
-    }: any,
+    { declaration, body, location }: any,
     environment: any,
     block: any[],
-    compile: (ast: any, environment: any, block: any[]) => any,
+    compile: (ast: any, ...args: any[]) => any,
   ) => {
+    const [name] = getLeakedNames(declaration)
+
     if (Object.prototype.hasOwnProperty.call(environment, name)) {
       return error([
         locatedError(
           `There is already a variable named '${name}'`,
-          nameLocation,
+          declaration.location,
         ),
       ])
     }
@@ -88,30 +81,22 @@ export const compilers = {
     const jsName = `${name}__${block.length}`
     const newEnvironment = { ...environment, [name]: jsName }
 
-    return forOkResult(compile(bind, newEnvironment, block), bindJsAst => {
-      block.push({
-        type: "VariableDeclaration",
-        kind: "const",
-        declarations: [
-          {
-            type: "VariableDeclarator",
-            id: {
-              type: "Identifier",
-              name: jsName,
-              ...startEndFromLocation(nameLocation),
-            },
-            init: bindJsAst,
-            ...startEndFromLocation(declarationLocation),
-          },
-        ],
-        ...startEndFromLocation(
-          rangeLocation(
-            locationLeftBound(location),
-            locationRightBound(bind.location),
+    return forOkResult(
+      compile(declaration, newEnvironment, block),
+      declarationJsAst => {
+        block.push({
+          type: "VariableDeclaration",
+          kind: "const",
+          declarations: [declarationJsAst],
+          ...startEndFromLocation(
+            rangeLocation(
+              locationLeftBound(location),
+              locationRightBound(declaration.location),
+            ),
           ),
-        ),
-      })
-      return compile(body, newEnvironment, block)
-    })
+        })
+        return compile(body, newEnvironment, block)
+      },
+    )
   },
 }

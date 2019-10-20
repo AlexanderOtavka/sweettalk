@@ -1,9 +1,8 @@
 import { locatedError } from "../lib/error"
 import { rangeLocationFromLocations } from "../lib/location"
-import match, { ANY } from "../lib/match"
-import { something, nothing } from "../lib/maybe"
 import { isOk, ok } from "../lib/result"
 import { startEndFromLocation } from "../lib/compile"
+import { leaksNames, getLeakedNames } from "../lib/leakyNames"
 
 export const parsers = {
   parseProgram: (tokens: readonly any[], parsers: any) => {
@@ -37,14 +36,17 @@ export const parsers = {
 
     return {
       consumed,
-      ast: {
-        type: "program",
-        body,
-        location: rangeLocationFromLocations(
-          tokens[0].location,
-          tokens[tokens.length - 1].location,
-        ),
-      },
+      ast: leaksNames(
+        {
+          type: "program",
+          body,
+          location: rangeLocationFromLocations(
+            tokens[0].location,
+            tokens[tokens.length - 1].location,
+          ),
+        },
+        body.map(getLeakedNames).reduce((a, b) => [...a, ...b], []),
+      ),
     }
   },
 }
@@ -57,8 +59,7 @@ export const compilers = {
   ) => {
     const newEnvironment = body.reduce(
       (newEnvironment, statement, i) => {
-        if (statement.type === "define") {
-          const { name } = statement.declaration.name
+        for (const name of getLeakedNames(statement)) {
           newEnvironment[name] = `${name}__${i}_defined`
         }
 

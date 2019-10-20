@@ -4,6 +4,7 @@ import { locatedError } from "../lib/error"
 import { rangeLocation } from "../lib/location"
 import { something } from "../lib/maybe"
 import { error, ok } from "../lib/result"
+import { leaksNames } from "../lib/leakyNames"
 
 const groupParsers = {
   parseExpression: ([token]) =>
@@ -12,7 +13,7 @@ const groupParsers = {
       : { consumed: 0, errors: [] },
   parseDeclaration: ([token]) =>
     token && token.type === "declaration"
-      ? { consumed: 1, ast: token }
+      ? { consumed: 1, ast: leaksNames(token, [token.name]) }
       : { consumed: 0, errors: [] },
 }
 
@@ -33,12 +34,15 @@ test("can parse a let expression", t => {
     consumed: 3,
     ast: {
       type: "let",
-      declaration: {
-        type: "declaration",
-        name: "Foo",
-        bind: "bind",
-        location: rangeLocation(5, 19),
-      },
+      declaration: leaksNames(
+        {
+          type: "declaration",
+          name: "Foo",
+          bind: "bind",
+          location: rangeLocation(5, 19),
+        },
+        ["Foo"],
+      ),
       body: {
         type: "expression",
         id: "body",
@@ -143,16 +147,19 @@ test("errors when a let shadows a variable", t => {
     compilers.let(
       {
         type: "let",
-        declaration: {
-          type: "declaration",
-          name: { type: "name", name: "Foo", location: rangeLocation(5, 8) },
-          bind: {
-            type: "expression",
-            id: "bind",
-            location: rangeLocation(11, 17),
+        declaration: leaksNames(
+          {
+            type: "declaration",
+            name: { type: "name", name: "Foo", location: rangeLocation(5, 8) },
+            bind: {
+              type: "expression",
+              id: "bind",
+              location: rangeLocation(11, 17),
+            },
+            location: rangeLocation(5, 19),
           },
-          location: rangeLocation(5, 19),
-        },
+          ["Foo"],
+        ),
         body: {
           type: "expression",
           id: "body",
@@ -167,7 +174,7 @@ test("errors when a let shadows a variable", t => {
     error([
       locatedError(
         "There is already a variable named 'Foo'",
-        rangeLocation(5, 8),
+        rangeLocation(5, 19),
       ),
     ]),
   )

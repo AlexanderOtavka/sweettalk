@@ -1,8 +1,6 @@
 import { nameToWords, wordsToName } from "../lib/words"
 import { rangeLocationFromLocations } from "../lib/location"
-import match, { ANY } from "../lib/match"
 import { forOkResult, allOkResults, ok } from "../lib/result"
-import { something, nothing } from "../lib/maybe"
 import { startEndFromLocation } from "../lib/compile"
 
 export const parsers = {

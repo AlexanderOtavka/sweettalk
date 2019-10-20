@@ -4,6 +4,7 @@ import { locatedError } from "../lib/error"
 import { rangeLocation } from "../lib/location"
 import { something } from "../lib/maybe"
 import { error, ok } from "../lib/result"
+import { leaksNames } from "../lib/leakyNames"
 
 test("can lex declarator", t => {
   t.deepEqual(lex("= bar"), {
@@ -39,16 +40,19 @@ test("can parse a declaration", t => {
     ),
     {
       consumed: 4,
-      ast: {
-        type: "declaration",
-        name: { type: "name", name: "Foo", location: rangeLocation(5, 8) },
-        bind: {
-          type: "expression",
-          id: "bind",
-          location: rangeLocation(11, 17),
+      ast: leaksNames(
+        {
+          type: "declaration",
+          name: { type: "name", name: "Foo", location: rangeLocation(5, 8) },
+          bind: {
+            type: "expression",
+            id: "bind",
+            location: rangeLocation(11, 17),
+          },
+          location: rangeLocation(5, 19),
         },
-        location: rangeLocation(5, 19),
-      },
+        ["Foo"],
+      ),
     },
   )
 })

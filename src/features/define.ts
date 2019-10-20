@@ -4,6 +4,7 @@ import match, { ANY } from "../lib/match"
 import { something, nothing } from "../lib/maybe"
 import { ok, forOkResult } from "../lib/result"
 import { startEndFromLocation } from "../lib/compile"
+import { leaksNames, getLeakedNames } from "../lib/leakyNames"
 
 export const parsers = {
   parseStatement: (tokens: readonly any[], parsers: any) => {
@@ -33,78 +34,65 @@ export const parsers = {
 
     return {
       consumed: 1 + declarationConsumed,
-      ast: {
-        type: "define",
-        isExported,
-        declaration,
-        location: rangeLocationFromLocations(
-          tokens[0].location,
-          declaration.location,
-        ),
-      },
+      ast: leaksNames(
+        {
+          type: "define",
+          isExported,
+          declaration,
+          location: rangeLocationFromLocations(
+            tokens[0].location,
+            declaration.location,
+          ),
+        },
+        getLeakedNames(declaration),
+      ),
     }
   },
 }
 
 export const compilers = {
   define: (
-    {
-      isExported,
-      declaration: {
-        name: { name, location: nameLocation },
-        bind,
-        location: declarationLocation,
-      },
-      location,
-    },
+    { isExported, declaration, location },
     environment: any,
     block: any[],
-    compile: (ast: any, environment: any, block: any[]) => any,
+    compile: (ast: any, ...args: any[]) => any,
   ) =>
-    forOkResult(compile(bind, environment, block), (bindJsAst): any => {
-      const declaration = {
-        type: "VariableDeclaration",
-        kind: "const",
-        declarations: [
-          {
-            type: "VariableDeclarator",
-            id: {
-              type: "Identifier",
-              name: environment[name],
-              ...startEndFromLocation(nameLocation),
-            },
-            init: bindJsAst,
-            ...startEndFromLocation(declarationLocation),
-          },
-        ],
-        ...startEndFromLocation(location),
-      }
-
-      if (isExported) {
-        block.push(declaration)
-
-        return ok({
-          type: "ExpressionStatement",
-          expression: {
-            type: "AssignmentExpression",
-            operator: "=",
-            left: {
-              type: "MemberExpression",
-              computed: false,
-              object: { type: "Identifier", name: "exports" },
-              property: {
-                type: "Identifier",
-                name,
-                ...startEndFromLocation(nameLocation),
-              },
-            },
-            right: { type: "Identifier", name: environment[name] },
-            ...startEndFromLocation(declarationLocation),
-          },
+    forOkResult(
+      compile(declaration, environment, block),
+      (declarationJsAst): any => {
+        const constAst = {
+          type: "VariableDeclaration",
+          kind: "const",
+          declarations: [declarationJsAst],
           ...startEndFromLocation(location),
-        })
-      } else {
-        return ok(declaration)
-      }
-    }),
+        }
+
+        if (isExported) {
+          block.push(constAst)
+
+          const [name] = getLeakedNames(declaration)
+          return ok({
+            type: "ExpressionStatement",
+            expression: {
+              type: "AssignmentExpression",
+              operator: "=",
+              left: {
+                type: "MemberExpression",
+                computed: false,
+                object: { type: "Identifier", name: "exports" },
+                property: {
+                  type: "Identifier",
+                  name,
+                },
+              },
+              right: { type: "Identifier", name: environment[name] },
+              ...startEndFromLocation(declaration.location),
+            },
+            ...startEndFromLocation(location),
+          })
+        } else {
+          return ok(constAst)
+        }
+      },
+    ),
 }

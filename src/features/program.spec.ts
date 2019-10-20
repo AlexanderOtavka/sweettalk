@@ -2,6 +2,7 @@ import test from "ava"
 import { parsers } from "./program"
 import { rangeLocation } from "../lib/location"
 import { locatedError } from "../lib/error"
+import { leaksNames } from "../lib/leakyNames"
 
 const parserGroups = {
   parseStatement: ([token]) =>
@@ -22,15 +23,18 @@ test("parses a few statements", t => {
     ),
     {
       consumed: 3,
-      ast: {
-        type: "program",
-        body: [
-          { type: "statement", location: rangeLocation(0, 5) },
-          { type: "statement", location: rangeLocation(6, 10) },
-          { type: "statement", location: rangeLocation(11, 15) },
-        ],
-        location: rangeLocation(0, 15),
-      },
+      ast: leaksNames(
+        {
+          type: "program",
+          body: [
+            { type: "statement", location: rangeLocation(0, 5) },
+            { type: "statement", location: rangeLocation(6, 10) },
+            { type: "statement", location: rangeLocation(11, 15) },
+          ],
+          location: rangeLocation(0, 15),
+        },
+        [],
+      ),
     },
   )
 })
