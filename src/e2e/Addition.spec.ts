@@ -1,4 +1,4 @@
 import test from "ava"
 import { evalResult } from "./testHelpers"
 
-test(evalResult, "addition.sweet", { Sum: 2 })
+test(evalResult, "Addition.sweet", { Sum: 2 })

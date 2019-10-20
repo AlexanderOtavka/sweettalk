@@ -1,0 +1,6 @@
+define Array = require "./lib/Array.js";
+define Number_Times_Two = require "./lib/Times_Two.js";
+
+define Number = 1;
+
+share Array_Result = array (1, Number times two, 3);
