@@ -16,54 +16,52 @@
 -------- How indentation works:
 
 -- a colon wraps all following and indented expressions with parens, similar to
--- $ operator in Haskell.  Fat arrow does the same to parsing, but also has
--- syntactic significance
-do (a complicated expression with nesting)
+-- $ operator in Haskell.
+do (complicated expression with nesting).
 -- same as
-do: a complicated expression with nesting
+do: complicated expression with nesting.
 -- same as
 do:
-    a complicated expression with nesting
+  complicated expression with nesting.
 
--- Normally, two lines at the same indent level would be automatically
--- separated by the contextually appropriate separator (either comma or dot)
-["Foo", "Bar"]
+-- Equals sign does the same to parsing, but indicates assignment
+the definition = complicated expression with nesting.
 -- same as
-[
-    "Foo"
-    "Bar"
-]
+the definition =
+  complicated expression with nesting.
 
--- In order to continue a long expression, you must indent one level
-a very long expression that just keeps going
+-- Multiple colons or equals signs on one line are okay
+the definition =
+  complicated expression with a sub_expression:
+    Sub Expression.
 -- same as
-a very long expression
-    that just
-    keeps going
+the definition = complicated expression with a sub_expression:
+  Sub Expression.
 
 -------- How function definitions work:
 
 -- Define a function
 
 -- Simple function:
-write String to File =>
-    --- This is interpreted as function documentation
-    ---
-    --- :String: will be written to :File:.  :File: must have an associated
-    --- file descriptor.
+write a string to a file =
+  ----
+  This is interpreted as function documentation. Four or more dashes open a
+  multi-line comment, and the same number close it.
 
-    system::syscall::write(
-        system::file:: File descriptor?!, -- ?! crashes if maybe is nothing
-        mem:: String as buffer |> mem:: unsafe buffer <> pointer,
-        string:: String length,
-    )
-write string to file (String, File) => nothing
-write String to file (File) =>
-write string (String) to file (File) =>
-write string (String, File) to file =>
+  'the string' will be written to 'the file'. 'the file' must have an
+  associated file descriptor.
+  ----
+
+  the system_box's write to a file_descriptor:
+    [unwrapped] the system_box's f'n 'optionally a file descriptor'(the file)
+      -- [unwrapped] crashes if option is nothing
+  from an array_buffer:
+    the memory_box's ArrayBuffer from the string.
+
+write a string (a renamed_string) to a file (a renamed_file) = -- ...
 
 -- Excluding argument names from function name
-map (Transform) onto List => -- is named Map Onto List
+map (a transform) onto a list = -- is named map onto a list
 map onto list (Transform, List) =>
 map (Transform) onto (List) list =>
 
@@ -177,59 +175,100 @@ if My_Result is result ok (Thing)
         let result error (Error) = My_Result
         log message "Error: $Error"
 
--------- Example code
+----------------
+| Example code |
+----------------
 
-use type www:: fetch
+open box "https://sweetshoppe.io/HTTP/2.1.2/_.sweet".
+open box "https://sweetshoppe.io/IO/1.0.0/_.sweet".
+use  box "https://npm.org/modules/React/lib.js" as the react_box.
 
-used with: Fetch (is fetch) -- this must be imported like so: use module with Fetch
+do:
+  log message "This runs on startup when this module is imported".
+  log message "The module was used with an injected dependency "
+              "[the function_name]".
+  clarifying:
+    the function_name = name of a function:
+      the f'n 'promised HTTP Response from fetching a url'.
 
-use www:: Parse Response
-use system::io::(Write String To File, Exit_Success)
+  let the tasks =
+    response from requesting uri "https://api.tasks.io/tasks"
+      |>  value from that json_string.
+  let the formatted_table = string format of a list_table: List:
+    Array: "#", "Done", "Text",
+    Array: "1", "[X]",  "Design a programming language",
+    Array: "2", "[ ]",  "Implement that programming language".
 
-log message "This runs on startup when this module is imported"
-log message "The module was used with an injected dependency $(
-    function:: function (Fetch) name
-)"
+[public] run program =
+  write a string (the formatted_table) to a file (the stdout_file).
 
-share run program with Posix_Io _Env _Args =>
-    let Tasks = fetch "https://api.tasks.io/tasks" |> parse response <>
-    let Formatted_Table = format list_table [
-        ["ID", "Done", "Text"]
-        ...map list (Tasks) through: row from Task at Index =>
-            [
-                number:: number (Index) as string
-                "[$(if Task is done then "X" else " ")]"
-                Task->Text
-            ]
-    ]
-    write string (Formatted_Table) to file (Posix_Io->Stdout)
-    Exit_Success
+  clarifying:
+    the tasks =
+      [awaited] promised HTTP Response from fetching
+      url "https://api.tasks.io/tasks"
+        |>  that thing's body
+        |>  value from that json_string.
 
-define => Task is done = Task->Is_Done
+    the formatted_table = string format of a list_table: List:
+      Array: "#", "Done", "Text",
 
---- Also defined in list module
-define => map List (as Things) [are 't]
-    through (Transform (as Transform Thing at Index) [is ('t, #) => 'u])
-    [returns ['u..]] =
-        map index 0 Things through Transform
-        where:
-            => map Index Things through Transform =
-                match Things with:
-                    [] then [];
-                    [Thing, ...Others] then
-                        list:: prepend
-                            element:
-                                transform Thing at Index
-                            onto list: map index (Index + 1) things (Others)
-                                       through Transform;
+      ...an iterable (the tasks) with each element passed through
+      an enumerated_transform: a f'n 'row from a task at an index':
+        Array:
+          string from a number (the index + 1),
+          "\[[the x_string]\]",
+          the task's text.
 
-share => format List_Table (is [["*"..]..]) =
-    match List_Table with:
-        [] then ""
-        [First_Row, ...Other_Rows] then:
-            use string:: Join List With Separator
-            "| $(join list (First_Row) with separator (" | ")) |\n" ++
-                format list_table (Other_Rows)
+        clarifying: the x_string = is the task done? then "X". otherwise " ".
+
+a task is done = the task's is_done
+
+[html element] div with children (...the child_list) {
+  a class,
+  a [never used] className,
+  ...[object] a property_map -- object is the default anyway
+} =
+  the react_box's createElement("div", an object {
+    the className = the class,
+    ...the property_map
+  })
+
+-- The standard library won't do indexes with its function.
+an iterable with each element passed through
+an enumerated_transform (a f'n 'an element transformed at an index of a
+iterable') =
+  ------------------------------------------------------------------------------
+  This is just like Array#map in JavaScript. The transform should accept both
+  an element and an index.
+  ------------------------------------------------------------------------------
+
+  the iterable at index 0 with each element transformed.
+
+  clarifying:
+    an iterable at an index with each element transformed =
+      does the iterable match:
+        ()? then the iterable.
+
+        (the first_element, ...the other_elements)? then
+          the iterable module's an element:
+            the element transformed at the index of the iterable.
+            clarifying: the element = the first_element
+          in front of an iterable:
+            an iterable (the other_elements) at an index (the index + 1) with
+            each element transformed.
+
+string format of a list_table =
+    does the list_table match:
+      ()? then "".
+
+      (the first_row, ...the other_rows)? then
+        "| [the inner_row_contents] |\n[the rest]".
+
+        clarifying:
+          the inner_row_contents =
+            string joining a list (the first row) with separator " | ".
+
+          the rest = string format of a list_table (the other_rows).
 
 -- JS equivalent
 -- function formatListTable(table) {
@@ -240,3 +279,98 @@ share => format List_Table (is [["*"..]..]) =
 --         return `| ${firstRow.join(" | ")} |\n` + formatArrayTable(otherRows)
 --     }
 -- }
+
+---------------------------------------
+| A simple web server standalone file |
+---------------------------------------
+
+--  Tasks_Server.sweet  --
+
+open box "https://sweetshoppe.io/Waitress/1.0.0/_.sweet".
+----
+defines:
+- the f'n 'Waitress'
+- the f'n 'start a waitress at a port'
+- the f'n 'a waitress passing all requests through a middleware'
+- the f'n 'a waitress responding to get requests at a path
+  with a response_function'
+- the f'n 'response from running a waitress_middleware_chain with a request'
+re-exports from "https://sweetshoppe.io/HTTP/1.0.0/_.sweet":
+- the f'n 'HTTP Request {...}'
+- the f'n 'HTTP Response with a header_list and a json_body'
+- the f'n 'HTTP Headers {...}'
+- the f'n 'an http_request with extra {...}'
+----
+
+open box "https://sweetshoppe.io/Postgres/2.3.3/_.sweet".
+----
+defines:
+- the f'n 'Postgres Connection with a uri {an [optional] username,
+  an [optional] password}'
+- the f'n 'close a postgres_connection'
+re-exports from "https://sweetshoppe.io/SQL/1.0.0/_.sweet":
+- the f'n 'sql (a template_tree)'
+----
+
+[public] run program = start the waitress at port 3000.
+
+the waitress = Waitress
+  |>  that waitress passing all requests through a middleware: the db_middleware
+
+  |>  that waitress handling get requests at path (path to tasks)
+      with a response_function: a f'n 'response from a request':
+        HTTP Response to the request
+        with the header_list and a json_body (the task_list).
+
+        clarifying:
+          the header_list = HTTP Headers:
+            "Link" = link header with rel "next" to a uri:
+              path to tasks {the page_token = the next_page_token}.
+          the next_page_token = json from a value:
+            Array (the last_task's due_date, the last_task's id).
+
+          the last_task = last element of a list (the task_list).
+          the task_list =
+            object list from the postgres_connection given a sql_query:
+              sql<-"
+                select * from tasks
+                where
+                  due_date > [the page_due_date] and
+                  id > [the page_id]
+                order by
+                  due_date asc,
+                  id asc
+                limit [the page_size]
+              ".
+          (the page_due_date, the page_id) =
+            value from a json_string (the page_token)'s.
+
+          {the page_token, the page_size [default 10]} = the request's query's.
+          {the postgres_connection} = the request's extra's.
+
+the db_middleware =
+  a f'n 'middleware with a request and a waitress_middleware_chain':
+    do:
+      let the response =
+        response from running the waitress_middleware_chain
+        with a request (the modified_request).
+      close the postgres_connection.
+      return the response.
+
+    clarifying:
+      the modified_request =
+        an http_request (the request) with extra {the postgres_connection}.
+      the postgres_connection =
+        Postgres Connection with a uri (value of environment_variable "DB_URI"):
+          the username = value of environment_variable "DB_USERNAME",
+          the password = value of environment_variable "DB_PASSWORD".
+
+path to tasks {an [optional] page_token} =
+  "/tasks[the query]".
+
+  clarifying:
+    the query =
+      does the page_token match Something (the token)? then
+        "?" ++ query string {the page_token = the token}.
+      otherwise
+        "".
