@@ -1,0 +1,25 @@
+{
+    "name": "sweettalk",
+    "displayName": "SweetTalk",
+    "description": "SweetTalk language support",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.42.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "sweettalk",
+            "aliases": ["SweetTalk", "sweettalk"],
+            "extensions": [".sweet"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "sweettalk",
+            "scopeName": "source.sweettalk",
+            "path": "./syntaxes/sweettalk.tmLanguage.json"
+        }]
+    }
+}
