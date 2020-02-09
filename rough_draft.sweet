@@ -180,8 +180,20 @@ if My_Result is result ok (Thing)
 ----------------
 
 open box "https://sweetshoppe.io/HTTP/2.1.2/_.sweet".
-open box "https://sweetshoppe.io/IO/1.0.0/_.sweet".
-use  box "https://npm.org/modules/React/lib.js" as the react_box.
+
+from box "https://npm.org/modules/fs/1.0.0/index.js" use:
+  the f'n 'write' as the f'n 'write a string to a file'.
+
+use box "https://npm.org/modules/React/16.2.1/lib.js" as the react_box.
+
+share box "https://mycode.com/Task_Utils.sweet".
+
+from box "https://mycode.com/Table_Utils.sweet" share:
+  the f'n 'normalized form of a table'.
+
+share:
+  the f'n 'string format of a list_table',
+  the f'n 'a task is done'.
 
 do:
   log message "This runs on startup when this module is imported".
@@ -199,13 +211,13 @@ do:
     Array: "1", "[X]",  "Design a programming language",
     Array: "2", "[ ]",  "Implement that programming language".
 
-[public] run program =
+[shared] run program =
   write a string (the formatted_table) to a file (the stdout_file).
 
   clarifying:
     the tasks =
-      [awaited] promised HTTP Response from fetching
-      url "https://api.tasks.io/tasks"
+      promised HTTP Response from fetching url "https://api.tasks.io/tasks"
+        |>  that [awaited] thing
         |>  that thing's body
         |>  value from that json_string.
 
@@ -219,7 +231,7 @@ do:
           "\[[the x_string]\]",
           the task's text.
 
-        clarifying: the x_string = is the task done? then "X". otherwise " ".
+        clarifying: the x_string = is the task not done? then " ", otherwise "X".
 
 a task is done = the task's is_done
 
@@ -247,7 +259,7 @@ iterable') =
   clarifying:
     an iterable at an index with each element transformed =
       does the iterable match:
-        ()? then the iterable.
+        ()? then the iterable,
 
         (the first_element, ...the other_elements)? then
           the iterable module's an element:
@@ -259,7 +271,7 @@ iterable') =
 
 string format of a list_table =
     does the list_table match:
-      ()? then "".
+      ()? then "",
 
       (the first_row, ...the other_rows)? then
         "| [the inner_row_contents] |\n[the rest]".
@@ -288,14 +300,14 @@ string format of a list_table =
 
 open box "https://sweetshoppe.io/Waitress/1.0.0/_.sweet".
 ----
-defines:
+shares:
 - the f'n 'Waitress'
 - the f'n 'start a waitress at a port'
 - the f'n 'a waitress passing all requests through a middleware'
 - the f'n 'a waitress responding to get requests at a path
   with a response_function'
 - the f'n 'response from running a waitress_middleware_chain with a request'
-re-exports from "https://sweetshoppe.io/HTTP/1.0.0/_.sweet":
+shares from "https://sweetshoppe.io/HTTP/1.0.0/_.sweet":
 - the f'n 'HTTP Request {...}'
 - the f'n 'HTTP Response with a header_list and a json_body'
 - the f'n 'HTTP Headers {...}'
@@ -304,20 +316,20 @@ re-exports from "https://sweetshoppe.io/HTTP/1.0.0/_.sweet":
 
 open box "https://sweetshoppe.io/Postgres/2.3.3/_.sweet".
 ----
-defines:
+shares:
 - the f'n 'Postgres Connection with a uri {an [optional] username,
   an [optional] password}'
 - the f'n 'close a postgres_connection'
-re-exports from "https://sweetshoppe.io/SQL/1.0.0/_.sweet":
+shares from "https://sweetshoppe.io/SQL/1.0.0/_.sweet":
 - the f'n 'sql (a template_tree)'
 ----
 
-[public] run program = start the waitress at port 3000.
+[shared] run program = start the waitress at port 3000.
 
 the waitress = Waitress
   |>  that waitress passing all requests through a middleware: the db_middleware
 
-  |>  that waitress handling get requests at path (path to tasks)
+  |>  that waitress handling get requests at a path (path to tasks)
       with a response_function: a f'n 'response from a request':
         HTTP Response to the request
         with the header_list and a json_body (the task_list).
@@ -371,6 +383,6 @@ path to tasks {an [optional] page_token} =
   clarifying:
     the query =
       does the page_token match Something (the token)? then
-        "?" ++ query string {the page_token = the token}.
+        "?" ++ query string {the page_token = the token},
       otherwise
         "".

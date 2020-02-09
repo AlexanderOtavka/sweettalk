@@ -2,20 +2,68 @@
 	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
 	"name": "SweetTalk",
 	"patterns": [
-		{
-			"include": "#keywords"
-		},
-		{
-			"include": "#strings"
-		}
+		{ "include": "#comments" },
+		{ "include": "#keywords" },
+		{ "include": "#strings" },
+		{ "include": "#punctuation" },
+		{ "include": "#annotations" },
+		{ "include": "#inline-functions" },
+		{ "include": "#the-identifiers" },
+		{ "include": "#that-identifiers" },
+		{ "include": "#a-identifiers" },
+		{ "include": "#literal-argument-identifiers" },
+		{ "include": "#function-identifiers" }
 	],
 	"repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.block.sweettalk",
+          "begin": "\\-{4}\\-*\\s*$",
+          "end": "\\-{4}\\-*\\s*$"
+        },
+        {
+          "name": "comment.line.sweettalk",
+          "match": "\\-{2}.*$"
+        }
+      ]
+    },
 		"keywords": {
-			"patterns": [{
-				"name": "keyword.control.sweettalk",
-				"match": "\\b(return)\\b"
-			}]
-		},
+			"patterns": [
+        {
+          "name": "keyword.control.sweettalk",
+          "match": "\\b(do|return|is|does|match|then|otherwise)\\b|(\\?)"
+        },
+        {
+          "name": "keyword.control.box.sweettalk",
+          "match": "\\b((open|use|share|from)\\s+box|as|use|share)\\b"
+        },
+        {
+          "name": "keyword.other.sweettalk",
+          "match": "\\b(let|clarifying)\\b"
+        },
+        {
+          "name": "keyword.operator.application.sweettalk",
+          "match": "\\|>|<-"
+        },
+        {
+          "name": "keyword.operator.relational.sweettalk",
+          "match": "==|!=|(<=)|(>=)|(<)|(>)"
+        },
+        {
+          "name": "keyword.operator.assignment.sweettalk",
+          "match": "="
+        },
+        {
+          "name": "keyword.operator.logical.sweettalk",
+          "match": "\\b(not)\\b|(\\&|\\|)"
+        },
+        {
+          "name": "keyword.operator.arithmetic.sweettalk",
+          "match": "\\+\\+|\\+|-|\\*|/"
+        }
+      ]
+    },
 		"strings": {
 			"name": "string.quoted.double.sweettalk",
 			"begin": "\"",
@@ -24,9 +72,120 @@
 				{
 					"name": "constant.character.escape.sweettalk",
 					"match": "\\\\."
-				}
+        },
+        {
+          "name": "meta.template.expression",
+          "begin": "\\[",
+          "end": "\\]",
+          "patterns": [
+            { "include": "#the-identifiers" }
+          ]
+        }
 			]
-		}
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "match": "('s)\\s+(\\w+)",
+          "captures": {
+            "1": {
+              "name": "punctuation.accessor.sweettalk"
+            },
+            "2": {
+              "name": "variable.other.property.sweettalk"
+            }
+          }
+        },
+        {
+          "name": "punctuation.accessor.sweettalk",
+          "match": "'s\\b"
+        }
+      ]
+    },
+    "annotations": {
+      "name": "meta.annotation.sweettalk",
+      "begin": "\\[",
+      "end": "\\]",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.annotation.begin.sweettalk"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.annotation.end.sweettalk"
+        }
+      },
+      "patterns": [
+        {
+          "name": "keyword.control.sweettalk",
+          "match": "\\b(awaited|shared|optional|default)\\b"
+        }
+      ]
+    },
+    "inline-functions": {
+      "patterns": [
+        {
+          "name": "storage.type.function.sweettalk",
+          "match": "(a|the) f'n"
+        }
+      ]
+    },
+    "the-identifiers": {
+      "name": "variable.other.constant.sweettalk",
+      "begin": "\\b(the)\\b",
+      "end": "\\b(\\w+)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.modifier.article.sweettalk"
+        }
+      },
+      "patterns": [
+        { "include": "#annotations" }
+      ]
+    },
+    "that-identifiers": {
+      "name": "variable.other.constant.sweettalk",
+      "begin": "\\b(that)\\b",
+      "end": "\\b(\\w+)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.modifier.article.sweettalk"
+        }
+      },
+      "endCaptures": {
+        "1": {
+          "patterns": [{
+            "name": "variable.language.sweettalk",
+            "match": "thing"
+          }]
+        }
+      },
+      "patterns": [
+        { "include": "#annotations" }
+      ]
+    },
+    "a-identifiers": {
+      "name": "variable.parameter.sweettalk",
+      "begin": "\\b(a|an)\\b",
+      "end": "\\b(\\w+)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.modifier.article.sweettalk"
+        }
+      },
+      "patterns": [
+        { "include": "#annotations" }
+      ]
+    },
+    "literal-argument-identifiers": {
+      "name": "variable.parameter.sweettalk",
+      "match": "\\b(\\w+)\\s+(?=\"|\\d)"
+    },
+    "function-identifiers": {
+      "name": "entity.name.function",
+      "match": "\\b(\\w+)\\b"
+    }
 	},
 	"scopeName": "source.sweettalk"
 }
