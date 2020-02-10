@@ -53,7 +53,7 @@ write a string to a file =
   ----
 
   the system_box's write to a file_descriptor:
-    [unwrapped] the system_box's f'n 'optionally a file descriptor'(the file)
+    [unwrapped] the system_box's f'n 'optional descriptor of a file'(the file)
       -- [unwrapped] crashes if option is nothing
   from an array_buffer:
     the memory_box's ArrayBuffer from the string.
@@ -193,7 +193,8 @@ from box "https://mycode.com/Table_Utils.sweet" share:
 
 share:
   the f'n 'string format of a list_table',
-  the f'n 'a task is done'.
+  the f'n 'a task is done',
+  the str.
 
 do:
   log message "This runs on startup when this module is imported".
@@ -208,8 +209,8 @@ do:
       |>  value from that json_string.
   let the formatted_table = string format of a list_table: List:
     Array: "#", "Done", "Text",
-    Array: "1", "[X]",  "Design a programming language",
-    Array: "2", "[ ]",  "Implement that programming language".
+    Array: "1", "\[X]",  "Design a programming language",
+    Array: "2", "\[ ]",  "Implement that programming language".
 
 [shared] run program =
   write a string (the formatted_table) to a file (the stdout_file).
@@ -228,17 +229,25 @@ do:
       an enumerated_transform: a f'n 'row from a task at an index':
         Array:
           string from a number (the index + 1),
-          "\[[the x_string]\]",
+          "\[[the x]]",
           the task's text.
 
-        clarifying: the x_string = is the task not done? then " ", otherwise "X".
+        clarifying: the x = is the task not done? then " ", otherwise "X".
 
-a task is done = the task's is_done
+the f'n 's value' = 22_335.3 / 0.88 * 5 - the react_box's f'n 'not_real'().
+
+a task is done = Boolean: the task's is_done
+
+string value = "hello there"
+the str = `"foo" bar \n [string value]`
+
+element at an index of an array = the array's #(the index).
+first element of an array = the array's #0.
 
 [html element] div with children (...the child_list) {
   a class,
-  a [never used] className,
-  ...[object] a property_map -- object is the default anyway
+  an [unused] className,
+  ...[Object] a property_map -- object is the default anyway
 } =
   the react_box's createElement("div", an object {
     the className = the class,
@@ -247,7 +256,7 @@ a task is done = the task's is_done
 
 -- The standard library won't do indexes with its function.
 an iterable with each element passed through
-an enumerated_transform (a f'n 'an element transformed at an index of a
+an enumerated_transform (a f'n 'an element transformed at an index of an
 iterable') =
   ------------------------------------------------------------------------------
   This is just like Array#map in JavaScript. The transform should accept both
@@ -262,7 +271,7 @@ iterable') =
         ()? then the iterable,
 
         (the first_element, ...the other_elements)? then
-          the iterable module's an element:
+          the iterable_box's an element:
             the element transformed at the index of the iterable.
             clarifying: the element = the first_element
           in front of an iterable:
@@ -357,7 +366,7 @@ the waitress = Waitress
           (the page_due_date, the page_id) =
             value from a json_string (the page_token)'s.
 
-          {the page_token, the page_size [default 10]} = the request's query's.
+          {the page_token, the [default 10] page_size} = the request's query's.
           {the postgres_connection} = the request's extra's.
 
 the db_middleware =
