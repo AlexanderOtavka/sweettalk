@@ -56,6 +56,10 @@
           "match": "="
         },
         {
+          "name": "keyword.operator.spread.sweettalk",
+          "match": "\\.{3}"
+        },
+        {
           "name": "keyword.operator.logical.sweettalk",
           "match": "\\b(not)\\b|(\\&|\\|)"
         },
@@ -154,6 +158,14 @@
         {
           "name": "punctuation.separator.sweettalk",
           "match": "[,:]"
+        },
+        {
+          "match": "^\\s*(-)",
+          "captures": {
+            "1": {
+              "name": "punctuation.separator.sweettalk"
+            }
+          }
         },
         {
           "name": "punctuation.terminator.sweettalk",

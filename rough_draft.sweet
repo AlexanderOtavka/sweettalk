@@ -305,35 +305,31 @@ string format of a list_table =
 | A simple web server standalone file |
 ---------------------------------------
 
---  Tasks_Server.sweet  --
+--- Tasks_Server.sweet ---
 
-open box "https://sweetshoppe.io/Waitress/1.0.0/_.sweet".
-----
-shares:
-- the f'n 'Waitress'
-- the f'n 'start a waitress at a port'
-- the f'n 'a waitress passing all requests through a middleware'
-- the f'n 'a waitress responding to get requests at a path
-  with a response_function'
-- the f'n 'response from running a waitress_middleware_chain with a request'
-shares from "https://sweetshoppe.io/HTTP/1.0.0/_.sweet":
-- the f'n 'HTTP Request {...}'
-- the f'n 'HTTP Response with a header_list and a json_body'
-- the f'n 'HTTP Headers {...}'
-- the f'n 'an http_request with extra {...}'
-----
+from box "https://sweetshoppe.io/Waitress/1.0.0/_.sweet" use:
+  - the f'n 'Waitress'
+  - the f'n 'start a waitress at a port'
+  - the f'n 'a waitress passing all requests through a middleware'
+  - the f'n 'a waitress responding to get requests at a path
+    with a response_function'
+  - the f'n 'promised HTTP Response from running a waitress_middleware_chain
+    with a request'
+-- re-shared from "https://sweetshoppe.io/HTTP/1.0.0/_.sweet":
+  - the f'n 'HTTP Request'
+  - the f'n 'HTTP Response to a request with a header_list and a json_body'
+  - the f'n 'HTTP Headers'
+  - the f'n 'link header with a rel to a uri'
+  - the f'n 'an http_request with extra'.
 
-open box "https://sweetshoppe.io/Postgres/2.3.3/_.sweet".
-----
-shares:
-- the f'n 'Postgres Connection with a uri {an [optional] username,
-  an [optional] password}'
-- the f'n 'close a postgres_connection'
-shares from "https://sweetshoppe.io/SQL/1.0.0/_.sweet":
-- the f'n 'sql (a template_tree)'
-----
+from box "https://sweetshoppe.io/Postgres/2.3.3/_.sweet" use:
+  the f'n 'Postgres Connection with a uri',
+  the f'n 'promised object list from a postgres_connection given a sql_query',
+  the f'n 'close a postgres_connection',
+-- re-shared from "https://sweetshoppe.io/SQL/1.0.0/_.sweet":
+  the f'n 'sql'.
 
-[shared] run program = start the waitress at port 3000.
+do: start the waitress at port 3000.
 
 the waitress = Waitress
   |>  that waitress passing all requests through a middleware: the db_middleware
@@ -352,7 +348,8 @@ the waitress = Waitress
 
           the last_task = last element of a list (the task_list).
           the task_list =
-            object list from the postgres_connection given a sql_query:
+            [awaited] promised object list from the postgres_connection
+            given a sql_query:
               sql<-"
                 select * from tasks
                 where
