@@ -20,12 +20,16 @@
       "patterns": [
         {
           "name": "comment.block.sweettalk",
-          "begin": "\\-{4}\\-*\\s*$",
-          "end": "\\-{4}\\-*\\s*$"
+          "begin": "^\\s*\\-{4}\\-*\\s*$",
+          "end": "^\\s*\\-{4}\\-*\\s*$"
         },
         {
-          "name": "comment.line.sweettalk",
-          "match": "\\-{2}.*$"
+          "match": "(?:^\\s*)?(\\-{2}.*$)",
+          "captures": {
+            "1": {
+              "name": "comment.line.sweettalk"
+            }
+          }
         }
       ]
     },
