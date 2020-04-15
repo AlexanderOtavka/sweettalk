@@ -11,7 +11,7 @@
 		{ "include": "#inline-functions" },
 		{ "include": "#the-identifiers" },
 		{ "include": "#that-identifiers" },
-		{ "include": "#a-identifiers" },
+		{ "include": "#some-identifiers" },
 		{ "include": "#literal-argument-identifiers" },
 		{ "include": "#function-identifiers" }
 	],
@@ -152,7 +152,7 @@
       "match": "\\b([\\d_]+(\\.[\\d_]+)?)\\b"
     },
     "inline-functions": {
-      "begin": "((a|the)\\s+fn)\\s+'",
+      "begin": "((some|the)\\s+fn)\\s+'",
       "end": "'",
       "beginCaptures": {
         "1": {
@@ -181,7 +181,7 @@
           ]
         },
         {
-          "match": "('s)\\s+(?!(?:the|that|a|an)\\b)(\\w+\\b)(?!\\s*[\\w\\(\\{])",
+          "match": "('s)\\s+(?!(?:the|that|some|some)\\b)(\\w+\\b)(?!\\s*[\\w\\(\\{])",
           "captures": {
             "1": {
               "name": "punctuation.accessor.sweettalk"
@@ -289,8 +289,8 @@
         { "include": "#annotations" }
       ]
     },
-    "a-identifiers": {
-      "begin": "\\b(a|an)\\b",
+    "some-identifiers": {
+      "begin": "\\b(some|some)\\b",
       "end": "\\b(\\w+)\\b",
       "beginCaptures": {
         "0": {
@@ -319,7 +319,7 @@
       "patterns": [
         { "include": "#comments" },
         { "include": "#keywords" },
-        { "include": "#a-identifiers" },
+        { "include": "#some-identifiers" },
         { "include": "#function-identifiers" }
       ]
     }
