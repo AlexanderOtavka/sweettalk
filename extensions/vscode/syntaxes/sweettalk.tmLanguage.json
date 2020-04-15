@@ -40,8 +40,8 @@
           "match": "\\b(do|return|is|does|match|then|otherwise)\\b|(\\?)"
         },
         {
-          "name": "keyword.control.box.sweettalk",
-          "match": "\\b((open|use|share|from)\\s+box|as|use|share)\\b"
+          "name": "keyword.control.package.sweettalk",
+          "match": "\\b((open|use|share|from)\\s+package|as|use|share)\\b"
         },
         {
           "name": "keyword.other.sweettalk",
@@ -53,11 +53,11 @@
         },
         {
           "name": "keyword.operator.relational.sweettalk",
-          "match": "==|!=|(<=)|(>=)|(<)|(>)"
+          "match": "==|(<=)|(>=)|(<)|(>)"
         },
         {
           "name": "keyword.operator.assignment.sweettalk",
-          "match": "="
+          "match": "=|:="
         },
         {
           "name": "keyword.operator.spread.sweettalk",
@@ -65,11 +65,37 @@
         },
         {
           "name": "keyword.operator.logical.sweettalk",
-          "match": "\\b(not)\\b|(\\&|\\|)"
+          "match": "\\b(not|whether)\\b|(\\&|\\|)"
         },
         {
           "name": "keyword.operator.arithmetic.sweettalk",
           "match": "\\+\\+|\\+|-|\\*|/"
+        },
+        {
+          "match": "\\b(class)(?:\\s+([\\w\\s]+))?\\b",
+          "captures": {
+            "1": {
+              "name": "storage.type.class.sweettalk"
+            },
+            "2": {
+              "name": "entity.name.type.sweettalk"
+            }
+          }
+        },
+        {
+          "match": "(interface)(?:\\s+(\\w+))?",
+          "captures": {
+            "1": {
+              "name": "storage.type.class.sweettalk"
+            },
+            "2": {
+              "name": "entity.name.type.interface.sweettalk"
+            }
+          }
+        },
+        {
+          "name": "storage.type.class.sweettalk",
+          "match": "\\b(implementing)\\b"
         }
       ]
     },
@@ -89,15 +115,25 @@
           "begin": "`",
           "end": "`",
           "patterns": [
-            { "include": "#string-escapes" },
+            { "include": "#bracket-string-escapes" },
             { "include": "#template-expressions" }
           ]
         }
       ]
     },
     "string-escapes": {
+      "patterns": [
+        { "include": "#backslash-string-escapes" },
+        { "include": "#bracket-string-escapes" }
+      ]
+    },
+    "backslash-string-escapes": {
       "name": "constant.character.escape.sweettalk",
       "match": "\\\\."
+    },
+    "bracket-string-escapes": {
+      "name": "constant.character.escape.sweettalk",
+      "match": "\\[\\[|\\]\\]"
     },
     "template-expressions": {
       "name": "meta.template.expression",
@@ -116,7 +152,7 @@
       "match": "\\b([\\d_]+(\\.[\\d_]+)?)\\b"
     },
     "inline-functions": {
-      "begin": "((a|the)\\s+f'n)\\s+'",
+      "begin": "((a|the)\\s+fn)\\s+'",
       "end": "'",
       "beginCaptures": {
         "1": {
@@ -130,7 +166,7 @@
     "punctuation": {
       "patterns": [
         {
-          "begin": "('s)\\s+(f'n)\\s+'",
+          "begin": "('s)\\s+(fn)\\s+'",
           "end": "'",
           "beginCaptures": {
             "1": {
@@ -195,7 +231,7 @@
         { "include": "#comments" },
         {
           "name": "keyword.control.sweettalk",
-          "match": "\\b(awaited|shared)\\b"
+          "match": "\\b(awaited|unboxed|shared)\\b"
         },
         {
           "name": "storage.modifier.sweettalk",
@@ -222,6 +258,7 @@
         }
       },
       "patterns": [
+        { "include": "#comments" },
         { "include": "#annotations" }
       ]
     },
@@ -241,12 +278,14 @@
               "match": "thing"
             },
             {
-              "name": "variable.other.constant.sweettalk"
+              "name": "variable.other.constant.sweettalk",
+              "match": ".*"
             }
           ]
         }
       },
       "patterns": [
+        { "include": "#comments" },
         { "include": "#annotations" }
       ]
     },
@@ -264,6 +303,7 @@
         }
       },
       "patterns": [
+        { "include": "#comments" },
         { "include": "#annotations" }
       ]
     },
@@ -277,6 +317,7 @@
     },
     "function-names": {
       "patterns": [
+        { "include": "#comments" },
         { "include": "#keywords" },
         { "include": "#a-identifiers" },
         { "include": "#function-identifiers" }

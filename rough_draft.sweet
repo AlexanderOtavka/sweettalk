@@ -25,175 +25,154 @@ do:
   complicated expression with nesting.
 
 -- Equals sign does the same to parsing, but indicates assignment
-the definition = complicated expression with nesting.
+the definition := complicated expression with nesting.
 -- same as
-the definition =
+the definition :=
   complicated expression with nesting.
 
 -- Multiple colons or equals signs on one line are okay
-the definition =
+the definition :=
   complicated expression with a sub_expression:
-    Sub Expression.
+    the sub_expression + 5.
 -- same as
-the definition = complicated expression with a sub_expression:
-  Sub Expression.
+the definition := complicated expression with a sub_expression:
+  the sub_expression * 9.
 
 -------- How function definitions work:
 
 -- Define a function
 
 -- Simple function:
-write a string to a file =
+write a string to a file :=
   ----
-  This is interpreted as function documentation. Four or more dashes open a
-  multi-line comment, and the same number close it.
+  This is interpreted as function documentation. Four or more dashes alone on
+  a line open or close multi-line comment.
 
   'the string' will be written to 'the file'. 'the file' must have an
   associated file descriptor.
   ----
 
-  the system_box's write to a file_descriptor:
-    [unwrapped] the system_box's f'n 'optional descriptor of a file'(the file)
-      -- [unwrapped] crashes if option is nothing
+  the system_package's write to a file_descriptor:
+    [unboxed] result from an option:
+      the system_package's fn 'optional descriptor of a file'(the file)
+    or else an error:
+      "Couldn't open file"
+    -- [unboxed] returns early if the boxed thing is unhappy
   from an array_buffer:
-    the memory_box's ArrayBuffer from the string.
+    the memory_package's ArrayBuffer from the string.
 
-write a string (a renamed_string) to a file (a renamed_file) = -- ...
+write a string as a renamed_string to a file as a renamed_file := -- ...
 
 -- Excluding argument names from function name
-map (a transform) onto a list = -- is named map onto a list
-map onto list (Transform, List) =>
-map (Transform) onto (List) list =>
+map (a transform) onto a list := -- is named 'map onto a list'
+map (a transform, a list) := -- is named 'map'
 
--- Optional parameters
-say (Message? or "\n") =>
+-- Optional parameters can only appear at the end of the argument list
+say (an [optional] message) := -- ...
+-- BAD!
+bad (an [optional] thingy, a non_optional_other_thingy) := -- ...
 
--- `?!` crashes if the maybe is nothing.
--- `?` returns early with the maybe if it is bad
+-- Named parameters
 
--- Overloads
--- Not really overloads because it generates multiple functions with different
--- names, but with the same body.  Come up with a better name
-do a thing (and another one (a third with the other one)?)?
-    (or a fourth independently with Parameter)? (is_ ok)? =>
-        -- this function simply prints out the way it was called
-        (
-            if And Another One -- We can see which branch we took
-                then: "and another one" ++
-                    if A Third With The Other One
-                        -- This one is nested, so it can only be given if `And
-                        -- Another One` is given first
-                        then "a third with the other one"
-                        else ""
-                else ""
-        ) ++ (
-            if Or A Fourth Independently With Parameter
-                then "or a fourth independently with parameter ($(Parameter?!))"
-                else ""
-        ) ++ (
-            if Is_ Ok -- use underscore to avoid confusion with keyword
-                then "is_ ok"
-                else ""
-        )
+-- TODO: update to latest style
+-- -- Annotating parameters with types
+-- write String [is string] to File [is system::io::file] :=>
+-- map onto list [Transform [is (any) :=> any], List [is list (any)] :=>
+-- print Things [are any] :=>
+-- print Things [is list (any)] :=>
+-- print things (Things [is list (any)]) :=>
 
--- Annotating parameters with types
-write String [is string] to File [is system::io::file] =>
-map onto list [Transform [is (any) => any], List [is list (any)] =>
-print Things [are any] =>
-print Things [is list (any)] =>
-print things (Things [is list (any)]) =>
+-- -------- How function calls work:
 
--------- How function calls work:
+-- -- Call by order:
+-- let File := system::io:: open file "./foo.txt" until closed
+-- let String := "foo"
+-- let Other String := "bar"
 
--- Call by order:
-let File = system::io:: open file "./foo.txt" until closed
-let String = "foo"
-let Other_String = "bar"
+-- write String to File                -- when the names match
+-- write string (Other String) to File -- when the names don't match, or you need to nest an expression
+-- write String to file (File)         -- you can even do it this way even if the names do match, but it's longer
+-- write string "baz" to File          -- no parens needed if you pass a literal
+-- write string to file (String, File) -- c style
+-- write (String, File) string to file -- the parens can really go anywhere after the first word, as long as the arguments stay in order
 
-write String to File                -- when the names match
-write string (Other_String) to File -- when the names don't match, or you need to nest an expression
-write String to file (File)         -- you can even do it this way even if the names do match, but it's longer
-write string "baz" to File          -- no parens needed if you pass a literal
-write string to file (String, File) -- c style
-write (String, File) string to file -- the parens can really go anywhere after the first word, as long as the arguments stay in order
+-- -- BAD
+-- write string to file (String) (File) -- can't do this, there must be a word between each group of parens.
+--                                      -- This is a syntax error to avoid ambiguity
+-- -- If you want to call curried functions, do
+-- (curried "foo") ("bar")
 
--- BAD
-write string to file (String) (File) -- can't do this, there must be a word between each group of parens.
-                                     -- This is a syntax error to avoid ambiguity
--- If you want to call curried functions, do
-(curried "foo") ("bar")
+-- -- Call by name:
+-- write string to file {String := Other String, File := File} -- keyed by the argument names
+-- write string to file {String, File} -- if the names match, pass by name
+-- write string to file {File, String} -- order doesn't matter
 
--- Call by name:
-write string to file {String = Other_String, File = File} -- keyed by the argument names
-write string to file {String, File} -- if the names match, pass by name
-write string to file {File, String} -- order doesn't matter
+-- -- BAD
+-- write string {String := Other String} to {File} file -- curly braces must go at end!
 
--- BAD
-write string {String = Other_String} to {File} file -- curly braces must go at end!
+-- -- Call by order and name:
+-- write String to file {File := File} -- you can combine order and name
+-- write string to file (String) {File := File}
 
--- Call by order and name:
-write String to file {File = File} -- you can combine order and name
-write string to file (String) {File = File}
+-- -- Referencing a function:
+-- handle Event [returns nothing] :=> log message "x: [Event->x], y: [Event->y]"
+-- www::dom:: when dom_event "click" happens do: Handle Event
 
--- Referencing a function:
-handle Event [returns nothing] => log message "x: [Event->x], y: [Event->y]"
-www::dom:: when dom_event "click" happens do: Handle Event
+-- -- Assigning a function to a variable
+-- -- Functions are just values, this is a functional programming language after all
+-- -- Capitalize all the words in the function name to reference or assign to it
+-- Task Is Done := ->Is Done
 
--- Assigning a function to a variable
--- Functions are just values, this is a functional programming language after all
--- Capitalize all the words in the function name to reference or assign to it
-Task Is Done = ->Is_Done
+-- -------- Type constructors
 
--------- Type constructors
+-- type maybe := one of:
+--     something *
+--     nothing
 
-type maybe = one of:
-    something *
-    nothing
+-- type result := one of:
+--     ok *
+--     error *
 
-type result = one of:
-    ok *
-    error *
+-- let My Something := maybe something 5
+-- let My Something := maybe something (3 + 2)
+-- let My Nothing := maybe nothing
 
-let My_Something = maybe something 5
-let My_Something = maybe something (3 + 2)
-let My_Nothing = maybe nothing
+-- let My Result := result ok 5
 
-let My_Result = result ok 5
+-- crash! unless My Result is result
+-- crash! unless My Something is maybe
 
-crash! unless My_Result is result
-crash! unless My_Something is maybe
+-- if My Something is maybe something (Thing)
+--     then: log message "Something: $Thing"
+--     elsif My Something == 2
+--     then: log message "Technically possible, because we aren't statically typed"
+--     else: log message "Nothing"
 
-if My_Something is maybe something (Thing)
-    then: log message "Something: $Thing"
-    elsif My_Something == 2
-    then: log message "Technically possible, because we aren't statically typed"
-    else: log message "Nothing"
-
-if My_Result is result ok (Thing)
-    then: log message "Ok: $Thing"
-    else:
-        let result error (Error) = My_Result
-        log message "Error: $Error"
+-- if My Result is result ok (Thing)
+--     then: log message "Ok: $Thing"
+--     else:
+--         let result error (Error) := My Result
+--         log message "Error: $Error"
 
 ----------------
 | Example code |
 ----------------
 
-open box "https://sweetshoppe.io/HTTP/2.1.2/_.sweet".
+open package "https://sweetshoppe.io/HTTP/2.1.2/_.sweet".
 
-from box "https://npm.org/modules/fs/1.0.0/index.js" use:
-  the f'n 'write' as the f'n 'write a string to a file'.
+from package "https://npm.org/modules/fs/1.0.0/index.js" use:
+  the fn 'write' as the fn 'write a string to a file'.
 
-use box "https://npm.org/modules/React/16.2.1/lib.js" as the react_box.
+use package "https://npm.org/modules/React/16.2.1/lib.js" as the react_package.
 
-share box "https://mycode.com/Task_Utils.sweet".
+share package "https://mycode.com/Task_Utils.sweet".
 
-from box "https://mycode.com/Table_Utils.sweet" share:
-  the f'n 'normalized form of a table'.
+from package "https://mycode.com/Table_Utils.sweet" share:
+  the fn 'normalized form of a table'.
 
 share:
-  the f'n 'string format of a list_table',
-  the f'n 'a task is done',
+  the fn 'string format of a list_table',
+  the fn 'a task is done',
   the str.
 
 do:
@@ -201,63 +180,110 @@ do:
   log message "The module was used with an injected dependency "
               "[the function_name]".
   clarifying:
-    the function_name = name of a function:
-      the f'n 'promised HTTP Response from fetching a url'.
+    the function_name := name of a function:
+      the fn 'promised HTTP Response from fetching a url'.
 
-  let the tasks =
+  let the tasks :=
     response from requesting uri "https://api.tasks.io/tasks"
       |>  value from that json_string.
-  let the formatted_table = string format of a list_table: List:
+  let the formatted_table := string format of a list_table: List:
     Array: "#", "Done", "Text",
-    Array: "1", "\[X]",  "Design a programming language",
-    Array: "2", "\[ ]",  "Implement that programming language".
+    Array: "1", "[[X]]",  "Design a programming language",
+    Array: "2", "[[ ]]",  "Implement that programming language".
 
-[shared] run program =
+[shared] run program :=
   write a string (the formatted_table) to a file (the stdout_file).
 
+  do:
+    the string := [unboxed] read line from a file (the stdin_file).
+    is the string empty | does the string == " "? then the string = null.
+
   clarifying:
-    the tasks =
+    the tasks :=
       promised HTTP Response from fetching url "https://api.tasks.io/tasks"
         |>  that [awaited] thing
         |>  that thing's body
         |>  value from that json_string.
 
-    the formatted_table = string format of a list_table: List:
+    the formatted_table := string format of a list_table: List:
       Array: "#", "Done", "Text",
 
       ...an iterable (the tasks) with each element passed through
-      an enumerated_transform: a f'n 'row from a task at an index':
+      an enumerated_transform: a fn 'row from a task at an index':
         Array:
           string from a number (the index + 1),
-          "\[[the x]]",
+          "[[[the x]]]",
           the task's text.
 
-        clarifying: the x = is the task not done? then " ", otherwise "X".
+        clarifying: the x := is the task not done? then " ", otherwise "X".
 
-the f'n 's value' = 22_335.3 / 0.88 * 5 - the react_box's f'n 'not_real'().
+the fn 's value' := 22_335.3 / 0.88 * 5 - the react_package's fn 'not_real'().
 
-a task is done = Boolean: the task's is_done
+a task is done := whether a value (the task's is_done) is truthy.
 
-string value = "hello there"
-the str = `"foo" bar \n [string value]`
+--------- In Matchable.sweet
 
-element at an index of an array = the array's #(the index).
-first element of an array = the array's #0.
+[shared] interface:
+  matching for an object on this matchable.
+
+--------- End Matchable.sweet
+--------- In Regex.sweet
+
+[shared] regex (an [optional] flag_set) := a fn 'Regex from a template_list':
+  Regex:
+    the code_string := code string from a sub_template_list (the template_list),
+    {the flag_set}.
+
+  clarifying:
+    code string from a sub_template_list :=
+      does the sub_template_list match:
+        Template List End (a string)? then the string,
+        Template List Entry (a string, an expression, a list_tail)? then do:
+          make sure the string starts capture group.
+          return the string ++ named capture group for the expression ++
+          code string from the sub_template_list.
+
+    -- The real thing will implement a parser to check the validity
+    make sure a string starts capture group := undefined.
+
+    named capture group for an expression :=
+      -- This will crash if the expression isn't a Template Match Hole. The real
+      -- thing will implement a nice error
+      does the expression match Template Match Hole (a name)? then
+        "?<[the name]>".
+
+class My Regex {a code_string, a flag_set}
+implementing:
+  matching for an object on this matchable := do:
+    let the match = [unboxed] Option from a nullable:
+      the matchable's "match"(the object).
+    return the match's groups.
+
+--------- End Regex.sweet
+
+a task is properly formatted :=
+  whether the task does match regex("g")<-`\n`
+
+string value := "hello there".
+the str := `"foo" bar \n [string value]`.
+
+element at an index of an array := the array's #(the index).
+first element of an array := the array's #0.
 
 [html element] div with children (...the child_list) {
   a class,
   an [unused] className,
   ...[Object] a property_map -- object is the default anyway
-} =
-  the react_box's createElement("div", an object {
-    the className = the class,
+} :=
+  the react_package's createElement("div", an object {
+    the className := the class,
     ...the property_map
   })
 
 -- The standard library won't do indexes with its function.
 an iterable with each element passed through
-an enumerated_transform (a f'n 'an element transformed at an index of an
-iterable') =
+an enumerated_transform (a fn 'an element transformed at an index of an
+iterable') :=
   ------------------------------------------------------------------------------
   This is just like Array#map in JavaScript. The transform should accept both
   an element and an index.
@@ -266,37 +292,37 @@ iterable') =
   the iterable at index 0 with each element transformed.
 
   clarifying:
-    an iterable at an index with each element transformed =
+    an iterable at an index with each element transformed :=
       does the iterable match:
         ()? then the iterable,
 
-        (the first_element, ...the other_elements)? then
-          the iterable_box's an element:
+        (a first_element, ...a list_of_the_rest)? then
+          the iterable_package's an element:
             the element transformed at the index of the iterable.
-            clarifying: the element = the first_element
+            clarifying: the element := the first_element
           in front of an iterable:
-            an iterable (the other_elements) at an index (the index + 1) with
+            an iterable (the list_of_the_rest) at an index (the index + 1) with
             each element transformed.
 
-string format of a list_table =
+string format of a list_table :=
     does the list_table match:
       ()? then "",
 
-      (the first_row, ...the other_rows)? then
+      (a first_row, ...an other_row_list)? then
         "| [the inner_row_contents] |\n[the rest]".
 
         clarifying:
-          the inner_row_contents =
+          the inner_row_contents :=
             string joining a list (the first row) with separator " | ".
 
-          the rest = string format of a list_table (the other_rows).
+          the rest := string format of a list_table (the other_row_list).
 
 -- JS equivalent
 -- function formatListTable(table) {
 --     if (table.length == 0) {
 --         return ""
 --     } else {
---         const [firstRow, ...otherRows] = table
+--         const [firstRow, ...otherRows] := table
 --         return `| ${firstRow.join(" | ")} |\n` + formatArrayTable(otherRows)
 --     }
 -- }
@@ -307,47 +333,46 @@ string format of a list_table =
 
 --- Tasks_Server.sweet ---
 
-from box "https://sweetshoppe.io/Waitress/1.0.0/_.sweet" use:
-  - the f'n 'Waitress'
-  - the f'n 'start a waitress at a port'
-  - the f'n 'a waitress passing all requests through a middleware'
-  - the f'n 'a waitress responding to get requests at a path
+from package "https://sweetshoppe.io/Waitress/1.0.0/_.sweet" use:
+  - the fn 'Waitress'
+  - the fn 'start a waitress at a port'
+  - the fn 'a waitress passing all requests through a middleware'
+  - the fn 'a waitress responding to get requests at a path
     with a response_function'
-  - the f'n 'promised HTTP Response from running a waitress_middleware_chain
+  - the fn 'promised HTTP Response from running a waitress_middleware_chain
     with a request'
 -- re-shared from "https://sweetshoppe.io/HTTP/1.0.0/_.sweet":
-  - the f'n 'HTTP Request'
-  - the f'n 'HTTP Response to a request with a header_list and a json_body'
-  - the f'n 'HTTP Headers'
-  - the f'n 'link header with a rel to a uri'
-  - the f'n 'an http_request with extra'.
+  - the fn 'HTTP Response to a request with a header_list and a json_body'
+  - the fn 'HTTP Headers'
+  - the fn 'link header with a rel to a uri'
+  - the fn 'an http_request with extra'.
 
-from box "https://sweetshoppe.io/Postgres/2.3.3/_.sweet" use:
-  the f'n 'Postgres Connection with a uri',
-  the f'n 'promised object list from a postgres_connection given a sql_query',
-  the f'n 'close a postgres_connection',
+from package "https://sweetshoppe.io/Postgres/2.3.3/_.sweet" use:
+  the fn 'Postgres Connection with a uri',
+  the fn 'promised object list from a postgres_connection given a sql_query',
+  the fn 'close a postgres_connection',
 -- re-shared from "https://sweetshoppe.io/SQL/1.0.0/_.sweet":
-  the f'n 'sql'.
+  the fn 'sql'.
 
 do: start the waitress at port 3000.
 
-the waitress = Waitress
+the waitress := Waitress
   |>  that waitress passing all requests through a middleware: the db_middleware
 
   |>  that waitress handling get requests at a path (path to tasks)
-      with a response_function: a f'n 'response from a request':
+      with a response_function: a fn 'response from a request':
         HTTP Response to the request
         with the header_list and a json_body (the task_list).
 
         clarifying:
-          the header_list = HTTP Headers:
-            "Link" = link header with rel "next" to a uri:
-              path to tasks {the page_token = the next_page_token}.
-          the next_page_token = json from a value:
+          the header_list := HTTP Headers:
+            "Link" := link header with rel "next" to a uri:
+              path to tasks {the page_token := the next_page_token}.
+          the next_page_token := json from a value:
             Array (the last_task's due_date, the last_task's id).
 
-          the last_task = last element of a list (the task_list).
-          the task_list =
+          the last_task := last element of a list (the task_list).
+          the task_list :=
             [awaited] promised object list from the postgres_connection
             given a sql_query:
               sql<-"
@@ -360,35 +385,35 @@ the waitress = Waitress
                   id asc
                 limit [the page_size]
               ".
-          (the page_due_date, the page_id) =
+          (the page_due_date, the page_id) :=
             value from a json_string (the page_token)'s.
 
-          {the page_token, the [default 10] page_size} = the request's query's.
-          {the postgres_connection} = the request's extra's.
+          {the page_token, the [default 10] page_size} := the request's query's.
+          {the postgres_connection} := the request's extra's.
 
-the db_middleware =
-  a f'n 'middleware with a request and a waitress_middleware_chain':
+the db_middleware :=
+  a fn 'middleware with a request and a waitress_middleware_chain':
     do:
-      let the response =
-        response from running the waitress_middleware_chain
+      let the response :=
+        promised HTTP Response from running the waitress_middleware_chain
         with a request (the modified_request).
       close the postgres_connection.
       return the response.
 
     clarifying:
-      the modified_request =
+      the modified_request :=
         an http_request (the request) with extra {the postgres_connection}.
-      the postgres_connection =
-        Postgres Connection with a uri (value of environment_variable "DB_URI"):
-          the username = value of environment_variable "DB_USERNAME",
-          the password = value of environment_variable "DB_PASSWORD".
+      the postgres_connection :=
+        Postgres Connection with a uri (value of environment_variable "DB URI"):
+          the username := value of environment_variable "DB USERNAME",
+          the password := value of environment_variable "DB PASSWORD".
 
-path to tasks {an [optional] page_token} =
+path to tasks {an [optional] page_token} :=
   "/tasks[the query]".
 
   clarifying:
-    the query =
+    the query :=
       does the page_token match Something (the token)? then
-        "?" ++ query string {the page_token = the token},
+        "?" ++ query string {the page_token := the token},
       otherwise
         "".
