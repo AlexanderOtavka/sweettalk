@@ -43,7 +43,7 @@ the definition := complicated expression with some sub_expression:
 -- Define some function
 
 -- Simple function:
-write some string to some file :=
+[boxed in: Option] write some string to some file :=
   ----
   This is interpreted as function documentation. Four or more dashes alone on
   some line open or close multi-line comment.
@@ -191,12 +191,8 @@ do:
     Array: "1", "[[X]]",  "Design some programming language",
     Array: "2", "[[ ]]",  "Implement that programming language".
 
-[shared] run program :=
+do [async]:
   write some string (the formatted_table) to some file (the stdout_file).
-
-  do:
-    the string := [unboxed] read line from some file (the stdin_file).
-    is the string empty | does the string == " "? then the string = null.
 
   clarifying:
     the tasks :=
@@ -252,12 +248,15 @@ some task is done := whether some value (the task's is_done) is truthy.
       does the expression match Template Match Hole (some name)? then
         "?<[the name]>".
 
-class My Regex {some code_string, some flag_set}
+class Regex {some code_string, some flag_set} :=
+  a new Regex {the regex := a new RegExp(the code_string, the flag_set)}
+
 implementing:
-  matching for some object on this matchable := do:
-    let the match = [unboxed] Option from some nullable:
-      the matchable's "match"(the object).
-    return the match's groups.
+  matching for some object on this matchable as {some regex} :=
+    do [boxed in: Option]:
+      let the match = [unboxed] Option from some nullable:
+        the matchable's "match"(the object).
+      return the match's groups.
 
 --------- End Regex.sweet
 
@@ -279,6 +278,10 @@ first element of some array := the array's #0.
     the className := the class,
     ...the property_map
   })
+
+the promise = Promise of some value: 5
+  |>  that promise transformed by: some fn 'add to some value': the value + 5
+  |>  do [async]: return that [awaited] thing * 8.
 
 -- The standard library won't do indexes with its function.
 some iterable with each element passed through
@@ -360,7 +363,7 @@ the waitress := Waitress
   |>  that waitress passing all requests through some middleware: the db_middleware
 
   |>  that waitress handling get requests at some path (path to tasks)
-      with some response_function: some fn 'response from some request':
+      with some response_function: some [async] fn 'response from some request':
         HTTP Response to the request
         with the headers and some json_body (the tasks).
 

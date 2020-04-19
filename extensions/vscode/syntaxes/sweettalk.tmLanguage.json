@@ -235,6 +235,10 @@
         },
         {
           "name": "storage.modifier.sweettalk",
+          "match": "\\b(async|boxed\\s+in)\\b"
+        },
+        {
+          "name": "storage.modifier.sweettalk",
           "match": "\\b(optional|default|unused)\\b"
         },
         { "include": "#strings" },
