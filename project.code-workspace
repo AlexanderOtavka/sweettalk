@@ -1,14 +1,14 @@
 {
-	"folders": [
-		{
-			"path": "."
-		},
-		{
-			"path": "extensions/vscode"
-		},
-		{
-			"path": "compiler"
-		}
-	],
-	"settings": {}
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "extensions/vscode"
+    },
+    {
+      "path": "compiler"
+    }
+  ],
+  "settings": {}
 }
